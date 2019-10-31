@@ -2,10 +2,15 @@
 Python clone of Microsoft's classic text editor.
 
 **Design Philosophy**
+
   I. Don't fix what isn't broken. Editor is fine.
+  
  II. Don't stick to any particular version -- just the "greatest hits".
+ 
 III. When in doubt, make it behave exactly like Notepad.
+
  IV. Don't reinvent the wheel.
+ 
   V. Pull requests welcome.
 
 **Installation and Requirements**
