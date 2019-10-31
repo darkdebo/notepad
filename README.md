@@ -18,6 +18,8 @@ III. When in doubt, make it behave exactly like Notepad.
 2. Should work on Linux and Windows systems
 3. Download files, place in directory
 4. In terminal emulator of choice:
-    a. Navigate to director
+
+    a. Navigate to directory
+
     b. run 'python3 notepad.py'
 5. Fun, or Profit, or Both, or Neither.
