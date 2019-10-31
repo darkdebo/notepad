@@ -1,17 +1,7 @@
 # notepad
 Python clone of Microsoft's classic text editor.
 
-**Design Philosophy**
-
-  I. Don't fix what isn't broken. Editor is fine.
-  
- II. Don't stick to any particular version -- just the "greatest hits".
- 
-III. When in doubt, make it behave exactly like Notepad.
-
- IV. Don't reinvent the wheel.
- 
-  V. Pull requests welcome.
+![image](notepad.png)
 
 **Installation and Requirements**
 1. Python 3.6ish standard install required
@@ -23,3 +13,17 @@ III. When in doubt, make it behave exactly like Notepad.
 
     b. run 'python3 notepad.py'
 5. Fun, or Profit, or Both, or Neither.
+
+
+
+**Design Philosophy**
+
+  I. Don't fix what isn't broken. Editor is fine.
+  
+ II. Don't stick to any particular version -- just the "greatest hits".
+ 
+III. When in doubt, make it behave exactly like Notepad.
+
+ IV. Don't reinvent the wheel.
+ 
+  V. Pull requests welcome.
