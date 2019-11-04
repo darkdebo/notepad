@@ -1,32 +1,33 @@
-# notepad
+#notepad
 Python clone of Microsoft's classic text editor.
 
 ![image](notepad.png)
 
-**Installation and Requirements**
-1. Python 3.6ish standard install required
-2. Should work on Linux and Windows systems
-3. Download files, place in directory
-4. In terminal emulator of choice:
+This project aims to replicate the basic text editor that has shipped with the Microsoft Windows operating system since 1985. No specific version of the program is being targeted. The goal is to include the "greatest hits" of Notepad's features, and provide a versatile cross-platform editor with a familiar user interface.    
 
-    a. Navigate to directory
+## Requirements
+ - Python 3
+ - Tkinter
 
-    b. run 'python3 notepad.py'
-5. Fun, or Profit, or Both, or Neither.
+##Usage
+Start notepad using: 
+```bash
+python notepad.py
+``` 
 
+##Contributing
+Users are encouraged to open any issues found with the program.
 
+Pull requests are welcome to fix issues, or to add new features.
 
-**Design Philosophy**
+New features are welcome only if they are present in a version of Microsoft Notepad, and are implemented in the same way. 
 
-  I. Don't fix what isn't broken. Editor is fine.
-  
- II. Don't stick to any particular version -- just the "greatest hits".
- 
-III. When in doubt, make it behave exactly like Notepad.
+##Acknowledgement
+[Richard Brodie](https://en.wikipedia.org/wiki/Richard_Brodie_(programmer)/) - Original Microsoft Notepad author
 
- IV. Don't reinvent the wheel.
- 
-  V. Pull requests welcome.
+[j4321](www.github.com/j4321/tkFontChooser) - Author of tkFontChooser
 
+[MrinalVerma](https://www.geeksforgeeks.org/make-notepad-using-tkinter/) - Author of educational article on using tkinter to create a simple text editor
 
-*P.S. How you you make markdown look nice?*
+##License
+[GLWT](LICENSE)

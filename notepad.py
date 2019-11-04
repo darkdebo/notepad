@@ -1,25 +1,25 @@
-import os
-import tkinter as tk
-import webbrowser
 import logging as log
-import tkfontchooser
+import os
+import webbrowser
 from datetime import datetime
+from tkinter import Frame, Text, LabelFrame, Scrollbar, Menu, Button, Checkbutton, Radiobutton, Label, Entry, Toplevel,\
+    BooleanVar, TclError, Tk, HORIZONTAL, VERTICAL, WORD, SUNKEN, INSERT, CURRENT, NONE, END, font, messagebox
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import asksaveasfilename
-from tkinter import font, messagebox
+import fontpicker
 
 
-class Interface(tk.Frame):
+class Interface(Frame):
     def __init__(self, master=None, *kwargs):
-        tk.Frame.__init__(self, master)
+        Frame.__init__(self, master)
         self.master = master
 
         # settings variables
-        self.word_wrap = tk.BooleanVar()
+        self.word_wrap = BooleanVar()
         self.word_wrap.set(True)
-        self.__show_status_bar = tk.BooleanVar()
+        self.__show_status_bar = BooleanVar()
         self.__show_status_bar.set(True)
-        self.fnt = tk.font.Font(family="Courier New", size=10)
+        self.fnt = font.Font(family="Courier New", size=10)
         self.find_open = False
         self.replace_open = False
         self.goto_open = False
@@ -33,18 +33,18 @@ class Interface(tk.Frame):
         self.toggle_word_wrap()
 
     def __init_main_window(self):
-        self.text_area = tk.Text(self.master, undo=True)
-        self.text_area.config(font=self.fnt, wrap=tk.WORD)
+        self.text_area = Text(self.master, undo=True)
+        self.text_area.config(font=self.fnt, wrap=WORD)
 
         # To add scrollbar
-        self.scroll_bar_x = tk.Scrollbar(self.master, orient=tk.HORIZONTAL)
-        self.scroll_bar_y = tk.Scrollbar(self.master, orient=tk.VERTICAL)
+        self.scroll_bar_x = Scrollbar(self.master, orient=HORIZONTAL)
+        self.scroll_bar_y = Scrollbar(self.master, orient=VERTICAL)
         __file = None
 
         try:
             pass
             self.master.wm_iconbitmap('notepad.ico')
-        except tk.TclError:
+        except TclError:
             pass
 
         # Set the window text
@@ -54,10 +54,10 @@ class Interface(tk.Frame):
         self.master.grid_rowconfigure(0, weight=1)
         self.master.grid_columnconfigure(0, weight=1)
 
-        self.text_area.grid(column=0, row=0, sticky=tk.N + tk.E + tk.W + tk.S)
+        self.text_area.grid(column=0, row=0, sticky='nsew')
 
-        self.scroll_bar_y.grid(column=1, row=0, sticky=tk.N + tk.E + tk.W + tk.S)
-        self.scroll_bar_x.grid(column=0, row=1, stic=tk.N + tk.E + tk.W + tk.S)
+        self.scroll_bar_y.grid(column=1, row=0, sticky='nsew')
+        self.scroll_bar_x.grid(column=0, row=1, stic='nsew')
 
         # Scrollbar will adjust automatically according to the content
         self.scroll_bar_x.config(command=self.text_area.xview)
@@ -66,12 +66,12 @@ class Interface(tk.Frame):
 
     def __build_menu_bar(self):
         # main and submenus
-        self.menu_bar = tk.Menu(self.master)
-        self.file_menu = tk.Menu(self.menu_bar, tearoff=0)
-        self.edit_menu = tk.Menu(self.menu_bar, tearoff=0)
-        self.__format_menu = tk.Menu(self.menu_bar, tearoff=0)
-        self.thisViewMenu = tk.Menu(self.menu_bar, tearoff=0)
-        self.help_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.menu_bar = Menu(self.master)
+        self.file_menu = Menu(self.menu_bar, tearoff=0)
+        self.edit_menu = Menu(self.menu_bar, tearoff=0)
+        self.__format_menu = Menu(self.menu_bar, tearoff=0)
+        self.thisViewMenu = Menu(self.menu_bar, tearoff=0)
+        self.help_menu = Menu(self.menu_bar, tearoff=0)
 
         # File Menu
         self.menu_bar.add_cascade(label='File', underline=0, menu=self.file_menu)
@@ -125,7 +125,7 @@ class Interface(tk.Frame):
         self.master.config(menu=self.menu_bar)
 
     def __build_context_menu(self):
-        self.context_menu = tk.Menu(self.master, tearoff=0)
+        self.context_menu = Menu(self.master, tearoff=0)
         self.context_menu.add_command(label='Undo', underline=2, accelerator='Ctrl+Z', command=self.undo)
         self.context_menu.add_separator()
         self.context_menu.add_command(label='Cut', underline=2, accelerator='Ctrl+X', command=self.cut)
@@ -145,41 +145,41 @@ class Interface(tk.Frame):
             self.context_menu.grab_release()
 
     def set_font(self):
-        fnt = tkfontchooser.ask_font(family=self.fnt.actual(option='family'),
-                                     size=self.fnt.actual(option='size'),
-                                     weight=self.fnt.actual(option='weight'),
-                                     slant=self.fnt.actual(option='slant'),
-                                     underline=self.fnt.actual(option='underline'),
-                                     overstrike= self.fnt.actual(option='overstrike'))
+        fnt = fontpicker.ask_font(family=self.fnt.actual(option='family'),
+                                  size=self.fnt.actual(option='size'),
+                                  weight=self.fnt.actual(option='weight'),
+                                  slant=self.fnt.actual(option='slant'),
+                                  underline=self.fnt.actual(option='underline'),
+                                  overstrike=self.fnt.actual(option='overstrike'))
 
         if fnt:
-            self.fnt = tk.font.Font(family=fnt['family'],
-                                    size=int(fnt['size']),
-                                    weight=fnt['weight'],
-                                    slant=fnt['slant'],
-                                    underline=int(fnt['underline']),
-                                    overstrike=int(fnt['overstrike']))
+            self.fnt = font.Font(family=fnt['family'],
+                                 size=int(fnt['size']),
+                                 weight=fnt['weight'],
+                                 slant=fnt['slant'],
+                                 underline=int(fnt['underline']),
+                                 overstrike=int(fnt['overstrike']))
 
             self.text_area.config(font=self.fnt)
 
     def __build_status_bar(self):
-        self.status_bar = tk.Label(self.master, text="Ln 1, Col 1\t", bd=1, relief=tk.SUNKEN, anchor=tk.E)
+        self.status_bar = Label(self.master, text="Ln 1, Col 1\t", bd=1, relief=SUNKEN, anchor='e')
         self.toggle_status_bar()
 
     def toggle_status_bar(self):
         if self.__show_status_bar.get():
-            self.status_bar.grid(sticky=tk.S + tk.E + tk.W)
+            self.status_bar.grid(sticky='sew')
         else:
             self.status_bar.grid_forget()
 
     def toggle_word_wrap(self):
         if self.word_wrap.get():
-            self.text_area.config(wrap=tk.WORD)
+            self.text_area.config(wrap=WORD)
             self.scroll_bar_x.grid_forget()
             log.info("word wrap on")
         else:
-            self.text_area.config(wrap=tk.NONE)
-            self.scroll_bar_x.grid(column=0, row=1, stic=tk.N + tk.E + tk.W + tk.S)
+            self.text_area.config(wrap=NONE)
+            self.scroll_bar_x.grid(column=0, row=1, sticky='nsew')
             log.info("word wrap off")
 
     def __bind_shortcuts(self):
@@ -210,15 +210,16 @@ class Interface(tk.Frame):
         self.text_area.event_generate('<<Undo>>')
 
     def on_key(self, event=None):
-        self.update_status_bar(tk.INSERT)
+        self.update_status_bar(INSERT)
 
     def on_click(self, event=None):
-        self.update_status_bar(tk.CURRENT)
+        self.update_status_bar(CURRENT)
 
     def update_status_bar(self, obj):
         row, col = self.text_area.index(obj).split('.')
         self.status_bar.config(text=str('Ln ' + row + ', Col ' + col + ' \t'))
 
+    @staticmethod
     def get_index(text, index):
         return tuple(map(int, str.split(text.index(index), ".")))
 
@@ -244,7 +245,7 @@ class Interface(tk.Frame):
                 search_with_bing(s)
             else:
                 log.debug('selection was empty, not searching with bing')
-        except tk.TclError:
+        except TclError:
             print('TclError - Probably because nothing was selected ')
 
     def time_date(self, *kwargs):
@@ -252,7 +253,7 @@ class Interface(tk.Frame):
         # s = now.strftime("%X %x")
         # s = now.ctime()
         s = now.strftime("%I:%M %p %m/%d/%Y")
-        self.text_area.insert(tk.INSERT, s)
+        self.text_area.insert(INSERT, s)
 
     def show_find(self, *args):
         if not self.find_open:
@@ -281,18 +282,18 @@ class Interface(tk.Frame):
         self.master.title(string + ' - Notepad')
 
     def clear_text(self):
-        self.text_area.delete(1.0, tk.END)
+        self.text_area.delete(1.0, END)
 
     def get_text(self):
-        return self.text_area.get(1.0, tk.END)
+        return self.text_area.get(1.0, END)
 
     def write_text(self, text, start_index=1.0):
         self.text_area.insert(start_index, text)
 
 
-class GotoWindow(tk.Toplevel):
+class GotoWindow(Toplevel):
     def __init__(self, master, **kwargs):
-        tk.Toplevel.__init__(self, master, **kwargs)
+        Toplevel.__init__(self, master, **kwargs)
 
         self.master = master
 
@@ -301,17 +302,17 @@ class GotoWindow(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.quit)
 
         # search string box
-        self.find_label = tk.Label(self, text='Line Number:')
+        self.find_label = Label(self, text='Line Number:')
         self.find_label.grid(row=0, column=0, sticky='nw', pady=(10, 0), padx=5)
-        self.entry_line = tk.Entry(self, width=30)
-        self.entry_line.grid(row=1, column=0, columnspan=2, sticky='new', padx=5, pady=(0,10))
+        self.entry_line = Entry(self, width=30)
+        self.entry_line.grid(row=1, column=0, columnspan=2, sticky='new', padx=5, pady=(0, 10))
 
         # find next, cancel buttons
-        self.button_box = tk.Frame(self)
-        tk.Button(self.button_box, text="Go To",
-                  command=self.goto).grid(row='0', column=0, padx=0, pady=(0,5), sticky='e')
-        tk.Button(self.button_box, text="Cancel",
-                  command=self.quit).grid(row='0', column=1, padx=(5,10), pady=(0,5), sticky='e')
+        self.button_box = Frame(self)
+        Button(self.button_box, text="Go To",
+               command=self.goto).grid(row='0', column=0, padx=0, pady=(0, 5), sticky='e')
+        Button(self.button_box, text="Cancel",
+               command=self.quit).grid(row='0', column=1, padx=(5, 10), pady=(0, 5), sticky='e')
         self.button_box.grid(column=1, row=2)
 
     def goto(self):
@@ -329,38 +330,38 @@ class GotoWindow(tk.Toplevel):
         self.destroy()
 
 
-class FindWindow(tk.Toplevel):
+class FindWindow(Toplevel):
     def __init__(self, master, **kwargs):
-        tk.Toplevel.__init__(self, master, **kwargs)
+        Toplevel.__init__(self, master, **kwargs)
 
         self.title('Find')
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.quit)
 
         # search string box
-        self.find_label = tk.Label(self, text='Find what:')
+        self.find_label = Label(self, text='Find what:')
         self.find_label.grid(row=1, column=1, sticky='new', pady=(12, 10), padx=(5, 10))
-        self.entry_find = tk.Entry(self, width=25)
+        self.entry_find = Entry(self, width=25)
         self.entry_find.grid(row=1, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(10, 10))
 
         # find next, cancel buttons
-        self.button_frame = tk.Frame(self)
+        self.button_frame = Frame(self)
         self.button_frame.grid(row=1, column=4, rowspan=2, pady=(10, 0), padx=(10, 5), sticky='ne')
-        tk.Button(self.button_frame, text="Find next",
-                  command=self.quit).grid(row=0, column=0, padx=5, pady=(0, 0), sticky='ew')
-        tk.Button(self.button_frame, text="Cancel",
-                  command=self.quit).grid(row=1, column=0, padx=5, pady=(5, 0), sticky='ew')
+        Button(self.button_frame, text="Find next",
+               command=self.quit).grid(row=0, column=0, padx=5, pady=(0, 0), sticky='ew')
+        Button(self.button_frame, text="Cancel",
+               command=self.quit).grid(row=1, column=0, padx=5, pady=(5, 0), sticky='ew')
 
         # match case checkbox
-        self.match_case = tk.Checkbutton(self, text='Match case')
+        self.match_case = Checkbutton(self, text='Match case')
         self.match_case.grid(row=2, column=1, sticky="sw", padx=5, pady=10, columnspan=2)
 
         # directional radiobutton
-        self.direction_box = tk.LabelFrame(self, text='Direction')
+        self.direction_box = LabelFrame(self, text='Direction')
         self.direction_box.grid(row=2, column=3, sticky='ne', pady=(0, 10))
-        self.up_button = tk.Radiobutton(self.direction_box, text='Up')
+        self.up_button = Radiobutton(self.direction_box, text='Up')
         self.up_button.grid(row=1, column=1, padx=5)
-        self.down_button = tk.Radiobutton(self.direction_box, text='Down')
+        self.down_button = Radiobutton(self.direction_box, text='Down')
         self.down_button.grid(row=1, column=2, padx=(0, 5))
 
     def quit(self):
@@ -368,42 +369,42 @@ class FindWindow(tk.Toplevel):
         self.destroy()
 
 
-class FindReplaceWindow(tk.Toplevel):
+class FindReplaceWindow(Toplevel):
     def __init__(self, master, **kwargs):
-        tk.Toplevel.__init__(self, master, **kwargs)
+        Toplevel.__init__(self, master, **kwargs)
 
         self.title('Replace')
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.quit)
 
         # search string box
-        self.find_label = tk.Label(self, text='Find what:')
+        self.find_label = Label(self, text='Find what:')
         self.find_label.grid(row=1, column=1, sticky='new', pady=(12, 10), padx=(5, 10))
-        self.entry_find = tk.Entry(self, width=25)
+        self.entry_find = Entry(self, width=25)
         self.entry_find.grid(row=1, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(10, 10))
 
         # replace string box
-        self.replace_label = tk.Label(self, text='Replace:')
+        self.replace_label = Label(self, text='Replace:')
         self.replace_label.grid(row=2, column=1, sticky='new', pady=(6, 10), padx=(5, 10))
-        self.entry_replace = tk.Entry(self, width=25)
+        self.entry_replace = Entry(self, width=25)
         self.entry_replace.grid(row=2, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(5, 10))
 
         # buttons
-        self.button_frame = tk.Frame(self)
+        self.button_frame = Frame(self)
         self.button_frame.grid(row=1, column=4, rowspan=4, pady=(10, 0), padx=(10, 5), sticky='ne')
-        tk.Button(self.button_frame, text="Find next",
+        Button(self.button_frame, text="Find next",
                command=self.quit).grid(row=0, column=0, padx=5, pady=(0, 5), sticky='new')
-        tk.Button(self.button_frame, text="Cancel",
+        Button(self.button_frame, text="Cancel",
                command=self.quit).grid(row=1, column=0, padx=5, pady=(0, 5), sticky='new')
-        tk.Button(self.button_frame, text="Replace",
+        Button(self.button_frame, text="Replace",
                command=self.quit).grid(row=2, column=0, padx=5, pady=(0, 5), sticky='new')
-        tk.Button(self.button_frame, text="Replace all",
+        Button(self.button_frame, text="Replace all",
                command=self.quit).grid(row=3, column=0, padx=5, pady=(0, 5), sticky='new')
 
         # match case checkbox
-        self.match_case = tk.Checkbutton(self, text='Match case')
+        self.match_case = Checkbutton(self, text='Match case')
         self.match_case.grid(row=3, column=1, sticky="sw", padx=5, pady=0, columnspan=2)
-        self.match_whole_word = tk.Checkbutton(self, text='Match whole word only')
+        self.match_whole_word = Checkbutton(self, text='Match whole word only')
         self.match_whole_word.grid(row=4, column=1, sticky="sw", padx=5, pady=10, columnspan=2)
 
     def quit(self):
@@ -451,7 +452,7 @@ def save_file_as():
             # Change the window title
             f.close()
 
-    except tk.TclError:
+    except TclError:
         messagebox.showerror('Notepad', 'Error saving file.')
 
 
@@ -465,7 +466,7 @@ def save_file():
             f.write(notepad.get_text())
             f.close()
 
-        except tk.TclError:
+        except TclError:
             save_file_as()
     else:
         save_file_as()
@@ -483,10 +484,10 @@ def show_about():
 # Run main application
 
 # global vars
-file = ''     # path to current file
+file = ''  # path to current file
 log.basicConfig(level=log.INFO)
 
-window = tk.Tk()
+window = Tk()
 window.geometry("800x600")
 notepad = Interface(window)
 notepad.run()
