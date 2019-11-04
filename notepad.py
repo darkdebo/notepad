@@ -4,35 +4,38 @@ import webbrowser
 import logging as log
 import tkfontchooser
 from datetime import datetime
-from tkinter import messagebox
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import asksaveasfilename
-from tkinter import font
-import findwidget
+from tkinter import font, messagebox
 
 
 class Interface(tk.Frame):
     def __init__(self, master=None, *kwargs):
         tk.Frame.__init__(self, master)
         self.root = master
-        self.__init_window()
-
-    def __init_window(self):
-        self.text_area = tk.Text(self.root, undo=True)
-
-        self.__show_status_bar = tk.BooleanVar()
-        self.__show_status_bar.set(False)
 
         self.word_wrap = tk.BooleanVar()
         self.word_wrap.set(True)
-        self.counter = 0
-
+        self.__show_status_bar = tk.BooleanVar()
+        self.__show_status_bar.set(True)
         self.fnt = tk.font.Font(family="Courier New", size=10)
+        self.find_open = False
+        self.replace_open = False
+        self.goto_open = False
+
+        self.__init_main_window()
+        self.__build_status_bar()
+        self.__build_context_menu()
+        self.__build_menu_bar()
+        self.__bind_shortcuts()
+
+    def __init_main_window(self):
+        self.text_area = tk.Text(self.root, undo=True)
         self.text_area.config(font=self.fnt, wrap=tk.WORD)
 
         # To add scrollbar
-        self.scroll_bar_x = tk.Scrollbar(self.text_area, orient=tk.HORIZONTAL)
-        self.scroll_bar_y = tk.Scrollbar(self.text_area)
+        self.scroll_bar_x = tk.Scrollbar(self.root, orient=tk.HORIZONTAL)
+        self.scroll_bar_y = tk.Scrollbar(self.root, orient=tk.VERTICAL)
         __file = None
 
         try:
@@ -48,19 +51,15 @@ class Interface(tk.Frame):
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
 
-        self.text_area.grid(sticky=tk.N + tk.E + tk.W + tk.S)
+        self.text_area.grid(column=0, row=0, sticky=tk.N + tk.E + tk.W + tk.S)
 
-        self.scroll_bar_y.pack(side=tk.RIGHT, fill=tk.Y)
-        self.scroll_bar_x.pack(side=tk.BOTTOM, fill=tk.X)
+        self.scroll_bar_y.grid(column=1, row=0, sticky=tk.N + tk.E + tk.W + tk.S)
+        self.scroll_bar_x.grid(column=0, row=1, stic=tk.N + tk.E + tk.W + tk.S)
 
         # Scrollbar will adjust automatically according to the content
         self.scroll_bar_x.config(command=self.text_area.xview)
+        self.scroll_bar_y.config(command=self.text_area.yview)
         self.text_area.config(xscrollcommand=self.scroll_bar_x.set, yscrollcommand=self.scroll_bar_y.set)
-
-        self.build_status_bar()
-        self.__build_context_menu()
-        self.__build_menu_bar()
-        self.bind_shortcuts()
 
     def __build_menu_bar(self):
         # main and submenus
@@ -97,7 +96,7 @@ class Interface(tk.Frame):
         self.edit_menu.add_command(label='Find...', underline=0, accelerator='Ctrl+F', command=self.show_find)
         self.edit_menu.add_command(label='Find Next', underline=5, accelerator='F3', command=self.show_find)
         self.edit_menu.add_command(label='Replace...', underline=0, accelerator='Ctrl+H', command=self.paste)
-        self.edit_menu.add_command(label='Go To...', underline=0, accelerator='Ctrl+G', command=self.paste)
+        self.edit_menu.add_command(label='Go To...', underline=0, accelerator='Ctrl+G', command=self.show_goto)
         self.edit_menu.add_separator()
         self.edit_menu.add_command(label='Select All', underline=7, accelerator='Ctrl+A', command=self.select_all)
         self.edit_menu.add_command(label='Time/Date', underline=5, accelerator='F5', command=self.time_date)
@@ -110,8 +109,7 @@ class Interface(tk.Frame):
 
         # View Menu
         self.menu_bar.add_cascade(label='View', underline=1, menu=self.thisViewMenu)
-        self.thisViewMenu.add_checkbutton(label='Status Bar', underline=0,
-                                          variable=self.__show_status_bar,
+        self.thisViewMenu.add_checkbutton(label='Status Bar', underline=0, variable=self.__show_status_bar,
                                           command=self.toggle_status_bar)
 
         # Help Menu
@@ -143,12 +141,12 @@ class Interface(tk.Frame):
             self.context_menu.grab_release()
 
     def set_font(self):
-        fnt = tkfontchooser.askfont(family=self.fnt.actual(option='family'),
-                                    size=self.fnt.actual(option='size'),
-                                    weight=self.fnt.actual(option='weight'),
-                                    slant=self.fnt.actual(option='slant'),
-                                    underline=self.fnt.actual(option='underline'),
-                                    overstrike= self.fnt.actual(option='overstrike'))
+        fnt = tkfontchooser.ask_font(family=self.fnt.actual(option='family'),
+                                     size=self.fnt.actual(option='size'),
+                                     weight=self.fnt.actual(option='weight'),
+                                     slant=self.fnt.actual(option='slant'),
+                                     underline=self.fnt.actual(option='underline'),
+                                     overstrike= self.fnt.actual(option='overstrike'))
 
         if fnt:
             self.fnt = tk.font.Font(family=fnt['family'],
@@ -160,8 +158,9 @@ class Interface(tk.Frame):
 
             self.text_area.config(font=self.fnt)
 
-    def build_status_bar(self):
-        self.status_bar = tk.Label(self.root, text=str(self.counter) + "Ln 1, Col 1\t", bd=1, relief=tk.SUNKEN, anchor=tk.E)
+    def __build_status_bar(self):
+        self.status_bar = tk.Label(self.root, text="Ln 1, Col 1\t", bd=1, relief=tk.SUNKEN, anchor=tk.E)
+        self.toggle_status_bar()
 
     def toggle_status_bar(self):
         if self.__show_status_bar.get():
@@ -177,7 +176,7 @@ class Interface(tk.Frame):
             self.text_area.config(wrap=tk.NONE)
             log.debug("rap off")
 
-    def bind_shortcuts(self):
+    def __bind_shortcuts(self):
         self.root.bind_class('Text', '<Control-a>', self.select_all)
         self.root.bind_class('Text', '<Control-A>', self.select_all)
         self.root.bind_class('Text', '<Control-s>', save_file)
@@ -190,6 +189,8 @@ class Interface(tk.Frame):
         self.root.bind_class('Text', '<Control-F>', self.show_find)
         self.root.bind_class('Text', '<Control-h>', self.show_find_replace)
         self.root.bind_class('Text', '<Control-H>', self.show_find_replace)
+        self.root.bind_class('Text', '<Control-g>', self.show_goto)
+        self.root.bind_class('Text', '<Control-G>', self.show_goto)
         self.root.bind_class('Text', '<F5>', self.time_date)
         self.text_area.bind_class(self.text_area, '<Any-KeyPress>', self.on_key)
         self.text_area.bind_class(self.text_area, '<Button-1>', self.on_click)
@@ -244,14 +245,23 @@ class Interface(tk.Frame):
         now = datetime.now()
         # s = now.strftime("%X %x")
         # s = now.ctime()
-        s = now.strftime("%I:%M %p %m/%d/%Y\n")
+        s = now.strftime("%I:%M %p %m/%d/%Y")
         self.text_area.insert(tk.INSERT, s)
 
     def show_find(self, *args):
-        findwidget.FindWindow(master=self)
+        if not self.find_open:
+            self.find_open = True
+            FindWindow(master=self)
 
     def show_find_replace(self, *args):
-        findwidget.FindReplaceWindow(master=self)
+        if not self.replace_open:
+            self.replace_open = True
+            FindReplaceWindow(master=self)
+
+    def show_goto(self, *args):
+        if not self.goto_open:
+            self.goto_open = True
+            GotoWindow(master=self)
 
     @staticmethod
     def get_help():
@@ -274,9 +284,131 @@ class Interface(tk.Frame):
         self.text_area.insert(start_index, text)
 
 
+class GotoWindow(tk.Toplevel):
+    def __init__(self, master, **kwargs):
+        tk.Toplevel.__init__(self, master, **kwargs)
+
+        self.master = master
+
+        self.title('Goto')
+        self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.quit)
+
+        # search string box
+        self.find_label = tk.Label(self, text='Line Number:')
+        self.find_label.grid(row=1, column=0, sticky='new', pady=(12, 10), padx=5)
+        self.entry_line = tk.Entry(self, width=25)
+        self.entry_line.grid(row=1, column=1, columnspan=2, sticky='new', padx=5, pady=10)
+
+        # find next, cancel buttons
+        self.button_box = tk.Frame(self)
+        tk.Button(self.button_box, text="Go To",
+                  command=self.goto).grid(row='0', column=0, padx=10, pady=(0,5), sticky=tk.E)
+        tk.Button(self.button_box, text="Cancel",
+                  command=self.quit).grid(row='0', column=1, padx=10, pady=(0,5), sticky=tk.E)
+        self.button_box.grid(column=1, row=2)
+
+    def goto(self):
+        line = self.entry_line.get()
+        try:
+            line = int(line)
+            self.master.text_area.mark_set("insert", "%d.0" % line)
+            self.master.text_area.see("insert")
+
+        except ValueError:
+            print('Value not integer')
+
+    def quit(self):
+        self.master.goto_open = False
+        self.destroy()
+
+
+class FindWindow(tk.Toplevel):
+    def __init__(self, master, **kwargs):
+        tk.Toplevel.__init__(self, master, **kwargs)
+
+        self.title('Find')
+        self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.quit)
+
+        # search string box
+        self.find_label = tk.Label(self, text='Find what:')
+        self.find_label.grid(row=1, column=1, sticky='new', pady=(12, 10), padx=(5, 10))
+        self.entry_find = tk.Entry(self, width=25)
+        self.entry_find.grid(row=1, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(10, 10))
+
+        # find next, cancel buttons
+        self.button_frame = tk.Frame(self)
+        self.button_frame.grid(row=1, column=4, rowspan=2, pady=(10, 0), padx=(10, 5), sticky='ne')
+        tk.Button(self.button_frame, text="Find next",
+                  command=self.quit).grid(row=0, column=0, padx=5, pady=(0, 0), sticky='ew')
+        tk.Button(self.button_frame, text="Cancel",
+                  command=self.quit).grid(row=1, column=0, padx=5, pady=(5, 0), sticky='ew')
+
+        # match case checkbox
+        self.match_case = tk.Checkbutton(self, text='Match case')
+        self.match_case.grid(row=2, column=1, sticky="sw", padx=5, pady=10, columnspan=2)
+
+        # directional radiobutton
+        self.direction_box = tk.LabelFrame(self, text='Direction')
+        self.direction_box.grid(row=2, column=3, sticky='ne', pady=(0, 10))
+        self.up_button = tk.Radiobutton(self.direction_box, text='Up')
+        self.up_button.grid(row=1, column=1, padx=5)
+        self.down_button = tk.Radiobutton(self.direction_box, text='Down')
+        self.down_button.grid(row=1, column=2, padx=(0, 5))
+
+    def quit(self):
+        self.master.find_open = False
+        self.destroy()
+
+
+class FindReplaceWindow(tk.Toplevel):
+    def __init__(self, master, **kwargs):
+        tk.Toplevel.__init__(self, master, **kwargs)
+
+        self.title('Replace')
+        self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.quit)
+
+        # search string box
+        self.find_label = tk.Label(self, text='Find what:')
+        self.find_label.grid(row=1, column=1, sticky='new', pady=(12, 10), padx=(5, 10))
+        self.entry_find = tk.Entry(self, width=25)
+        self.entry_find.grid(row=1, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(10, 10))
+
+        # replace string box
+        self.replace_label = tk.Label(self, text='Replace:')
+        self.replace_label.grid(row=2, column=1, sticky='new', pady=(11, 10), padx=(5, 10))
+        self.entry_replace = tk.Entry(self, width=25)
+        self.entry_replace.grid(row=2, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(10, 10))
+
+        # buttons
+        self.button_frame = tk.Frame(self)
+        self.button_frame.grid(row=1, column=4, rowspan=4, pady=(10, 0), padx=(10, 5), sticky='ne')
+        tk.Button(self.button_frame, text="Find next",
+               command=self.quit).grid(row=0, column=0, padx=5, pady=(0, 5), sticky='new')
+        tk.Button(self.button_frame, text="Cancel",
+               command=self.quit).grid(row=1, column=0, padx=5, pady=(0, 5), sticky='new')
+        tk.Button(self.button_frame, text="Replace",
+               command=self.quit).grid(row=2, column=0, padx=5, pady=(0, 5), sticky='new')
+        tk.Button(self.button_frame, text="Replace all",
+               command=self.quit).grid(row=3, column=0, padx=5, pady=(0, 5), sticky='new')
+
+        # match case checkbox
+        self.match_case = tk.Checkbutton(self, text='Match case')
+        self.match_case.grid(row=3, column=1, sticky="sw", padx=5, pady=0, columnspan=2)
+        self.match_whole_word = tk.Checkbutton(self, text='Match whole word only')
+        self.match_whole_word.grid(row=4, column=1, sticky="sw", padx=5, pady=10, columnspan=2)
+
+    def quit(self):
+        self.master.replace_open = False
+        self.destroy()
+
+
 def open_file():
     global file
     file = askopenfilename(defaultextension='.txt',
+                           initialdir='.',
                            filetypes=[('All Files', '*.*'),
                                       ('Text Documents', '*.txt')])
 

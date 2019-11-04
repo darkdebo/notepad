@@ -3,17 +3,6 @@ from tkinter.ttk import Checkbutton, Frame, Label, Button, Scrollbar, Style, Ent
 from tkinter.font import families, Font
 
 
-def singleton(class_):
-    instances = {}
-
-    def get_instance(*args, **kwargs):
-        if class_ not in instances:
-            instances[class_] = class_(*args, **kwargs)
-        return instances[class_]
-    return get_instance
-
-
-@singleton
 class FontChooser(Toplevel):
     def __init__(self, master, font_dict=None, text="AaBbYyZz", title="Font", **kwargs):
 
@@ -50,7 +39,7 @@ class FontChooser(Toplevel):
 
         # --- creation of the widgets
         # ------ style parameters (bold, italic ...)
-        options_frame = Frame(self, relief='solid', borderwidth=1)
+        options_frame = Frame(self, relief='groove')
         self.font_family = StringVar(self, " ".join(self.fonts))
         self.font_size = StringVar(self, " ".join(self.sizes))
         self.var_bold = BooleanVar(self, font_dict["weight"] == "bold")
@@ -69,10 +58,11 @@ class FontChooser(Toplevel):
                                   variable=self.var_underline)
         b_underline.grid(row=2, sticky="w", padx=4, pady=2)
         self.var_overstrike = BooleanVar(self, font_dict["overstrike"])
-        b_overstrike = Checkbutton(options_frame, text="Overstrike",
+        b_overstrike = Checkbutton(options_frame, text="Strikethrough",
                                    variable=self.var_overstrike,
                                    command=self.toggle_overstrike)
         b_overstrike.grid(row=3, sticky="w", padx=4, pady=(2, 4))
+
         # ------ Size and family
         self.var_size = StringVar(self)
         self.entry_family = Entry(self, width=max_length, validate="key",
@@ -102,7 +92,7 @@ class FontChooser(Toplevel):
         self.preview_font = Font(self, **font_dict)
         if len(text) > 30:
             text = text[:30]
-        self.preview_window = LabelFrame(self, relief="solid", text='Sample', bd=1)
+        self.preview_window = LabelFrame(self, relief="groove", text='Sample', bd=1)
 
         # --- widget configuration
         self.list_family.configure(yscrollcommand=scroll_family.set)
@@ -131,26 +121,21 @@ class FontChooser(Toplevel):
             pass
 
         family_label.grid(row=0, column=0, sticky='nsew', padx=(15, 1), pady=(10, 1))
-        self.entry_family.grid(row=1, column=0, sticky="nsew",
-                               pady=(1, 1), padx=(15, 0), columnspan=2)
-        self.list_family.grid(row=2, column=0, sticky="nsew",
-                              pady=(1, 10), padx=(15, 0))
+        self.entry_family.grid(row=1, column=0, sticky="nsew", pady=(1, 1), padx=(15, 0), columnspan=2)
+        self.list_family.grid(row=2, column=0, sticky="nsew", pady=(1, 10), padx=(15, 0))
         scroll_family.grid(row=2, column=1, sticky='ns', pady=(1, 10))
 
         style_label.grid(row=0, column=2, sticky='nsew', padx=(20, 1), pady=(10, 1))
-        options_frame.grid(row=1, column=2, rowspan=2,
-                           padx=(20, 1), pady=(1, 10), sticky='new')
+        options_frame.grid(row=1, column=2, rowspan=2, padx=(20, 1), pady=(1, 10), sticky='new')
 
         size_label.grid(row=0, column=3, sticky='nsew', padx=(20, 1), pady=(10, 1))
-        self.entry_size.grid(row=1, column=3, sticky="nsew",
-                             pady=(1, 1), padx=(20, 15), columnspan=2)
+        self.entry_size.grid(row=1, column=3, sticky="nsew", pady=(1, 1), padx=(20, 15), columnspan=2)
 
-        self.list_size.grid(row=2, column=3, sticky="ns",
-                            pady=(1, 10), padx=(20, 0))
+        self.list_size.grid(row=2, column=3, sticky="ns", pady=(1, 10), padx=(20, 0))
         scroll_size.grid(row=2, column=4, sticky='ns', pady=(1, 10), padx=(1, 15))
 
-        self.preview_window.grid(row=4, column=0, columnspan=5, sticky="nsew",
-                                 rowspan=2, padx=10, pady=(0, 10), ipadx=10, ipady=10)
+        self.preview_window.grid(row=4, column=0, columnspan=5, sticky="nsew", rowspan=2, padx=15, pady=(0, 10),
+                                 ipadx=10, ipady=10)
 
         self.preview_window.config(height=75)
         preview = Label(self.preview_window, text=text, font=self.preview_font, anchor="center")
@@ -159,10 +144,9 @@ class FontChooser(Toplevel):
         button_frame = Frame(self)
         button_frame.grid(row=6, column=2, columnspan=3, pady=(0, 10), padx=10)
 
-        Button(button_frame, text="Ok",
-               command=self.ok).grid(row=0, column=0, padx=4, sticky='ew')
-        Button(button_frame, text="Cancel",
-               command=self.quit).grid(row=0, column=1, padx=4, sticky='ew')
+        Button(button_frame, text="Ok", command=self.ok).grid(row=0, column=0, padx=4, sticky='ew')
+        Button(button_frame, text="Cancel", command=self.quit).grid(row=0, column=1, padx=4, sticky='ew')
+
         self.list_family.bind('<<ListboxSelect>>', self.update_entry_family)
         self.list_size.bind('<<ListboxSelect>>', self.update_entry_size, add=True)
         self.list_family.bind("<KeyPress>", self.keypress)
@@ -172,7 +156,6 @@ class FontChooser(Toplevel):
 
         self.entry_family.bind("<Down>", self.down_family)
         self.entry_size.bind("<Down>", self.down_size)
-
         self.entry_family.bind("<Up>", self.up_family)
         self.entry_size.bind("<Up>", self.up_size)
 
@@ -403,7 +386,7 @@ class FontChooser(Toplevel):
         self.destroy()
 
 
-def askfont(master=None, text="AaBbYyZz", title="Font", **font_args):
+def ask_font(master=None, text="AaBbYyZz", title="Font", **font_args):
     """
     Open the font chooser and return a dictionary of the font properties.
     General Arguments:
