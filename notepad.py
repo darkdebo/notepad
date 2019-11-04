@@ -14,6 +14,7 @@ class Interface(tk.Frame):
         tk.Frame.__init__(self, master)
         self.root = master
 
+        # settings variables
         self.word_wrap = tk.BooleanVar()
         self.word_wrap.set(True)
         self.__show_status_bar = tk.BooleanVar()
@@ -23,11 +24,13 @@ class Interface(tk.Frame):
         self.replace_open = False
         self.goto_open = False
 
+        # init methods
         self.__init_main_window()
         self.__build_status_bar()
         self.__build_context_menu()
         self.__build_menu_bar()
         self.__bind_shortcuts()
+        self.toggle_word_wrap()
 
     def __init_main_window(self):
         self.text_area = tk.Text(self.root, undo=True)
@@ -171,10 +174,12 @@ class Interface(tk.Frame):
     def toggle_word_wrap(self):
         if self.word_wrap.get():
             self.text_area.config(wrap=tk.WORD)
-            log.debug("rap on")
+            self.scroll_bar_x.grid_forget()
+            log.info("word wrap on")
         else:
             self.text_area.config(wrap=tk.NONE)
-            log.debug("rap off")
+            self.scroll_bar_x.grid(column=0, row=1, stic=tk.N + tk.E + tk.W + tk.S)
+            log.info("word wrap off")
 
     def __bind_shortcuts(self):
         self.root.bind_class('Text', '<Control-a>', self.select_all)
