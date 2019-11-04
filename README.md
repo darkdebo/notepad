@@ -22,10 +22,21 @@ Pull requests are welcome to fix issues, or to add new features.
 
 New features are welcome only if they are present in a version of Microsoft Notepad, and are implemented in the same way. 
 
+##Files
+[notepad.py](notepad.py) - Main program, execute this to start
+
+[tkfontpicker](tkfontchooser.py) - Copy of j4321's [tkfontchooser](www.github.com/j4321/tkfontchooser/), made 4/11/2019
+
+[fontpicker.py](fontpicker.py) - Modifications to [tkfontpicker](tkfontchooser.py) to make interface match Font dialog in Microsoft Notepad
+
+[notepad.ico](notepad.ico) - Icon file
+
+[test.txt](test.txt) - Some text used to test file open/save/save as features
+
 ##Acknowledgement
 [Richard Brodie](https://en.wikipedia.org/wiki/Richard_Brodie_(programmer)/) - Original Microsoft Notepad author
 
-[j4321](www.github.com/j4321/tkFontChooser) - Author of tkFontChooser
+[j4321](www.github.com/j4321/) - Author of tkFontChooser
 
 [MrinalVerma](https://www.geeksforgeeks.org/make-notepad-using-tkinter/) - Author of educational article on using tkinter to create a simple text editor
 
