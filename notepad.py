@@ -12,7 +12,7 @@ from tkinter import font, messagebox
 class Interface(tk.Frame):
     def __init__(self, master=None, *kwargs):
         tk.Frame.__init__(self, master)
-        self.root = master
+        self.master = master
 
         # settings variables
         self.word_wrap = tk.BooleanVar()
@@ -33,26 +33,26 @@ class Interface(tk.Frame):
         self.toggle_word_wrap()
 
     def __init_main_window(self):
-        self.text_area = tk.Text(self.root, undo=True)
+        self.text_area = tk.Text(self.master, undo=True)
         self.text_area.config(font=self.fnt, wrap=tk.WORD)
 
         # To add scrollbar
-        self.scroll_bar_x = tk.Scrollbar(self.root, orient=tk.HORIZONTAL)
-        self.scroll_bar_y = tk.Scrollbar(self.root, orient=tk.VERTICAL)
+        self.scroll_bar_x = tk.Scrollbar(self.master, orient=tk.HORIZONTAL)
+        self.scroll_bar_y = tk.Scrollbar(self.master, orient=tk.VERTICAL)
         __file = None
 
         try:
             pass
-            self.root.wm_iconbitmap('notepad.ico')
+            self.master.wm_iconbitmap('notepad.ico')
         except tk.TclError:
             pass
 
         # Set the window text
-        self.root.title('Untitled - Notepad')
+        self.master.title('Untitled - Notepad')
 
         # To make the text area auto resizable
-        self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_columnconfigure(0, weight=1)
+        self.master.grid_rowconfigure(0, weight=1)
+        self.master.grid_columnconfigure(0, weight=1)
 
         self.text_area.grid(column=0, row=0, sticky=tk.N + tk.E + tk.W + tk.S)
 
@@ -66,7 +66,7 @@ class Interface(tk.Frame):
 
     def __build_menu_bar(self):
         # main and submenus
-        self.menu_bar = tk.Menu(self.root)
+        self.menu_bar = tk.Menu(self.master)
         self.file_menu = tk.Menu(self.menu_bar, tearoff=0)
         self.edit_menu = tk.Menu(self.menu_bar, tearoff=0)
         self.__format_menu = tk.Menu(self.menu_bar, tearoff=0)
@@ -98,7 +98,8 @@ class Interface(tk.Frame):
         self.edit_menu.add_separator()
         self.edit_menu.add_command(label='Find...', underline=0, accelerator='Ctrl+F', command=self.show_find)
         self.edit_menu.add_command(label='Find Next', underline=5, accelerator='F3', command=self.show_find)
-        self.edit_menu.add_command(label='Replace...', underline=0, accelerator='Ctrl+H', command=self.paste)
+        self.edit_menu.add_command(label='Replace...', underline=0, accelerator='Ctrl+H',
+                                   command=self.show_find_replace)
         self.edit_menu.add_command(label='Go To...', underline=0, accelerator='Ctrl+G', command=self.show_goto)
         self.edit_menu.add_separator()
         self.edit_menu.add_command(label='Select All', underline=7, accelerator='Ctrl+A', command=self.select_all)
@@ -121,10 +122,10 @@ class Interface(tk.Frame):
         self.help_menu.add_separator()
         self.help_menu.add_command(label='About Notepad', underline=0, command=show_about)
 
-        self.root.config(menu=self.menu_bar)
+        self.master.config(menu=self.menu_bar)
 
     def __build_context_menu(self):
-        self.context_menu = tk.Menu(self.root, tearoff=0)
+        self.context_menu = tk.Menu(self.master, tearoff=0)
         self.context_menu.add_command(label='Undo', underline=2, accelerator='Ctrl+Z', command=self.undo)
         self.context_menu.add_separator()
         self.context_menu.add_command(label='Cut', underline=2, accelerator='Ctrl+X', command=self.cut)
@@ -162,7 +163,7 @@ class Interface(tk.Frame):
             self.text_area.config(font=self.fnt)
 
     def __build_status_bar(self):
-        self.status_bar = tk.Label(self.root, text="Ln 1, Col 1\t", bd=1, relief=tk.SUNKEN, anchor=tk.E)
+        self.status_bar = tk.Label(self.master, text="Ln 1, Col 1\t", bd=1, relief=tk.SUNKEN, anchor=tk.E)
         self.toggle_status_bar()
 
     def toggle_status_bar(self):
@@ -182,27 +183,27 @@ class Interface(tk.Frame):
             log.info("word wrap off")
 
     def __bind_shortcuts(self):
-        self.root.bind_class('Text', '<Control-a>', self.select_all)
-        self.root.bind_class('Text', '<Control-A>', self.select_all)
-        self.root.bind_class('Text', '<Control-s>', save_file)
-        self.root.bind_class('Text', '<Control-S>', save_file)
-        self.root.bind_class('Text', '<Control-n>', new_file)
-        self.root.bind_class('Text', '<Control-N>', new_file)
-        self.root.bind_class('Text', '<Control-b>', self.search_selected_text)
-        self.root.bind_class('Text', '<Control-B>', self.search_selected_text)
-        self.root.bind_class('Text', '<Control-f>', self.show_find)
-        self.root.bind_class('Text', '<Control-F>', self.show_find)
-        self.root.bind_class('Text', '<Control-h>', self.show_find_replace)
-        self.root.bind_class('Text', '<Control-H>', self.show_find_replace)
-        self.root.bind_class('Text', '<Control-g>', self.show_goto)
-        self.root.bind_class('Text', '<Control-G>', self.show_goto)
-        self.root.bind_class('Text', '<F5>', self.time_date)
+        self.master.bind_class('Text', '<Control-a>', self.select_all)
+        self.master.bind_class('Text', '<Control-A>', self.select_all)
+        self.master.bind_class('Text', '<Control-s>', save_file)
+        self.master.bind_class('Text', '<Control-S>', save_file)
+        self.master.bind_class('Text', '<Control-n>', new_file)
+        self.master.bind_class('Text', '<Control-N>', new_file)
+        self.master.bind_class('Text', '<Control-b>', self.search_selected_text)
+        self.master.bind_class('Text', '<Control-B>', self.search_selected_text)
+        self.master.bind_class('Text', '<Control-f>', self.show_find)
+        self.master.bind_class('Text', '<Control-F>', self.show_find)
+        self.master.bind_class('Text', '<Control-h>', self.show_find_replace)
+        self.master.bind_class('Text', '<Control-H>', self.show_find_replace)
+        self.master.bind_class('Text', '<Control-g>', self.show_goto)
+        self.master.bind_class('Text', '<Control-G>', self.show_goto)
+        self.master.bind_class('Text', '<F5>', self.time_date)
         self.text_area.bind_class(self.text_area, '<Any-KeyPress>', self.on_key)
         self.text_area.bind_class(self.text_area, '<Button-1>', self.on_click)
         self.text_area.bind_class(self.text_area, '<Button-3>', self.show_context_menu)
 
     def quit_application(self):
-        self.root.destroy()
+        self.master.destroy()
         exit()
 
     def undo(self, *args):
@@ -274,10 +275,10 @@ class Interface(tk.Frame):
 
     def run(self):
         # Run main application
-        self.root.mainloop()
+        self.master.mainloop()
 
     def set_title(self, string):
-        self.root.title(string + ' - Notepad')
+        self.master.title(string + ' - Notepad')
 
     def clear_text(self):
         self.text_area.delete(1.0, tk.END)
@@ -295,22 +296,22 @@ class GotoWindow(tk.Toplevel):
 
         self.master = master
 
-        self.title('Goto')
+        self.title('Go To Line')
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.quit)
 
         # search string box
         self.find_label = tk.Label(self, text='Line Number:')
-        self.find_label.grid(row=1, column=0, sticky='new', pady=(12, 10), padx=5)
-        self.entry_line = tk.Entry(self, width=25)
-        self.entry_line.grid(row=1, column=1, columnspan=2, sticky='new', padx=5, pady=10)
+        self.find_label.grid(row=0, column=0, sticky='nw', pady=(10, 0), padx=5)
+        self.entry_line = tk.Entry(self, width=30)
+        self.entry_line.grid(row=1, column=0, columnspan=2, sticky='new', padx=5, pady=(0,10))
 
         # find next, cancel buttons
         self.button_box = tk.Frame(self)
         tk.Button(self.button_box, text="Go To",
-                  command=self.goto).grid(row='0', column=0, padx=10, pady=(0,5), sticky=tk.E)
+                  command=self.goto).grid(row='0', column=0, padx=0, pady=(0,5), sticky='e')
         tk.Button(self.button_box, text="Cancel",
-                  command=self.quit).grid(row='0', column=1, padx=10, pady=(0,5), sticky=tk.E)
+                  command=self.quit).grid(row='0', column=1, padx=(5,10), pady=(0,5), sticky='e')
         self.button_box.grid(column=1, row=2)
 
     def goto(self):
@@ -321,7 +322,7 @@ class GotoWindow(tk.Toplevel):
             self.master.text_area.see("insert")
 
         except ValueError:
-            print('Value not integer')
+            log.ERROR('Value not integer')
 
     def quit(self):
         self.master.goto_open = False
@@ -383,9 +384,9 @@ class FindReplaceWindow(tk.Toplevel):
 
         # replace string box
         self.replace_label = tk.Label(self, text='Replace:')
-        self.replace_label.grid(row=2, column=1, sticky='new', pady=(11, 10), padx=(5, 10))
+        self.replace_label.grid(row=2, column=1, sticky='new', pady=(6, 10), padx=(5, 10))
         self.entry_replace = tk.Entry(self, width=25)
-        self.entry_replace.grid(row=2, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(10, 10))
+        self.entry_replace.grid(row=2, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(5, 10))
 
         # buttons
         self.button_frame = tk.Frame(self)
