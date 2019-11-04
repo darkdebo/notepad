@@ -1,4 +1,4 @@
-from tkinter import Toplevel, Listbox, StringVar, BooleanVar, LabelFrame
+from tkinter import Toplevel, Listbox, StringVar, BooleanVar, LabelFrame, TclError
 from tkinter.ttk import Checkbutton, Frame, Label, Button, Scrollbar, Style, Entry
 from tkinter.font import families, Font
 
@@ -10,6 +10,12 @@ class FontChooser(tkfontchooser.FontChooser):
 
         Toplevel.__init__(self, master, **kwargs)
         self.title(title)
+
+        try:
+            self.wm_iconbitmap('transparent.ico')
+        except TclError:
+            pass
+
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.quit)
         self._validate_family = self.register(self.validate_font_family)

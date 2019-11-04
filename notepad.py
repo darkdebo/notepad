@@ -42,9 +42,9 @@ class Interface(Frame):
         __file = None
 
         try:
-            pass
             self.master.wm_iconbitmap('notepad.ico')
         except TclError:
+            log.error("unable to set icon to notepad.ico")
             pass
 
         # Set the window text
@@ -219,10 +219,6 @@ class Interface(Frame):
         row, col = self.text_area.index(obj).split('.')
         self.status_bar.config(text=str('Ln ' + row + ', Col ' + col + ' \t'))
 
-    @staticmethod
-    def get_index(text, index):
-        return tuple(map(int, str.split(text.index(index), ".")))
-
     def cut(self, *args):
         self.text_area.event_generate('<<Cut>>')
 
@@ -291,11 +287,20 @@ class Interface(Frame):
         self.text_area.insert(start_index, text)
 
 
+def get_index(text, index):
+    return tuple(map(int, str.split(text.index(index), ".")))
+
 class GotoWindow(Toplevel):
     def __init__(self, master, **kwargs):
         Toplevel.__init__(self, master, **kwargs)
 
         self.master = master
+
+        try:
+            self.wm_iconbitmap('transparent.ico')
+        except TclError:
+            log.error("unable to set icon to transparent.ico")
+            pass
 
         self.title('Go To Line')
         self.resizable(False, False)
@@ -334,9 +339,20 @@ class FindWindow(Toplevel):
     def __init__(self, master, **kwargs):
         Toplevel.__init__(self, master, **kwargs)
 
+        self.master = master
+
+        self.direction = BooleanVar()
+        self.direction.set(False)
+
         self.title('Find')
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.quit)
+
+        try:
+            self.wm_iconbitmap('transparent.ico')
+        except TclError:
+            log.error("unable to set icon to transparent.ico")
+            pass
 
         # search string box
         self.find_label = Label(self, text='Find what:')
@@ -348,7 +364,7 @@ class FindWindow(Toplevel):
         self.button_frame = Frame(self)
         self.button_frame.grid(row=1, column=4, rowspan=2, pady=(10, 0), padx=(10, 5), sticky='ne')
         Button(self.button_frame, text="Find next",
-               command=self.quit).grid(row=0, column=0, padx=5, pady=(0, 0), sticky='ew')
+               command=self.find).grid(row=0, column=0, padx=5, pady=(0, 0), sticky='ew')
         Button(self.button_frame, text="Cancel",
                command=self.quit).grid(row=1, column=0, padx=5, pady=(5, 0), sticky='ew')
 
@@ -359,10 +375,29 @@ class FindWindow(Toplevel):
         # directional radiobutton
         self.direction_box = LabelFrame(self, text='Direction')
         self.direction_box.grid(row=2, column=3, sticky='ne', pady=(0, 10))
-        self.up_button = Radiobutton(self.direction_box, text='Up')
+        self.up_button = Radiobutton(self.direction_box, text='Up', variable=self.direction, value=True)
         self.up_button.grid(row=1, column=1, padx=5)
-        self.down_button = Radiobutton(self.direction_box, text='Down')
+        self.down_button = Radiobutton(self.direction_box, text='Down', variable=self.direction, value=False)
         self.down_button.grid(row=1, column=2, padx=(0, 5))
+
+    def find(self):
+        search_string = self.entry_find.get()
+        location = self.master.text_area.search(search_string, self.master.text_area.index(INSERT))
+
+        if location != '':
+            log.info('found ' + search_string + ' at position ' + location)
+
+            row, col = get_index(self.master.text_area, location)
+            end_col = str(col+len(search_string))
+            end_location = str(str(row) + '.' + end_col)
+
+            self.master.text_area.tag_remove('sel', "1.0", END)
+            self.master.text_area.tag_add('sel', location, end_location)
+            self.master.text_area.mark_set("insert", end_location)
+            self.master.text_area.see("insert")
+
+        else:
+             log.warning(search_string + 'string not found')
 
     def quit(self):
         self.master.find_open = False
@@ -376,6 +411,12 @@ class FindReplaceWindow(Toplevel):
         self.title('Replace')
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.quit)
+
+        try:
+            self.wm_iconbitmap('transparent.ico')
+        except TclError:
+            log.error("unable to set icon to transparent.ico")
+            pass
 
         # search string box
         self.find_label = Label(self, text='Find what:')

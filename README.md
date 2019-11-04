@@ -29,7 +29,9 @@ New features are welcome only if they are present in a version of Microsoft Note
 
 [fontpicker.py](fontpicker.py) - Modifications to [tkfontpicker](tkfontchooser.py) to make interface match Font dialog in Microsoft Notepad
 
-[notepad.ico](notepad.ico) - Icon file
+[notepad.ico](notepad.ico) - Primary icon file
+
+[transparent.ico](transparent.ico) - Transparent icon file used for popups
 
 [test.txt](test.txt) - Some text used to test file open/save/save as features
 
