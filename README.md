@@ -1,4 +1,4 @@
-#notepad
+# notepad
 Python clone of Microsoft's classic text editor.
 
 ![image](notepad.png)
@@ -9,20 +9,20 @@ This project aims to replicate the basic text editor that has shipped with the M
  - Python 3
  - Tkinter
 
-##Usage
+## Usage
 Start notepad using: 
 ```bash
 python notepad.py
 ``` 
 
-##Contributing
+## Contributing
 Users are encouraged to open any issues found with the program.
 
 Pull requests are welcome to fix issues, or to add new features.
 
 New features are welcome only if they are present in a version of Microsoft Notepad, and are implemented in the same way. 
 
-##Files
+## Files
 [notepad.py](notepad.py) - Main program, execute this to start
 
 [tkfontpicker](tkfontchooser.py) - Copy of j4321's [tkfontchooser](www.github.com/j4321/tkfontchooser/), made 4/11/2019
@@ -35,12 +35,12 @@ New features are welcome only if they are present in a version of Microsoft Note
 
 [test.txt](test.txt) - Some text used to test file open/save/save as features
 
-##Acknowledgement
+## Acknowledgement
 [Richard Brodie](https://en.wikipedia.org/wiki/Richard_Brodie_(programmer)/) - Original Microsoft Notepad author
 
 [j4321](www.github.com/j4321/) - Author of tkFontChooser
 
 [MrinalVerma](https://www.geeksforgeeks.org/make-notepad-using-tkinter/) - Author of educational article on using tkinter to create a simple text editor
 
-##License
+## License
 [GLWT](LICENSE)
