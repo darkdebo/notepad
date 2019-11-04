@@ -27,3 +27,6 @@ III. When in doubt, make it behave exactly like Notepad.
  IV. Don't reinvent the wheel.
  
   V. Pull requests welcome.
+
+
+*P.S. How you you make markdown look nice?*
