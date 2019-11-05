@@ -3,7 +3,7 @@ import os
 import webbrowser
 from datetime import datetime
 from tkinter import Frame, Text, LabelFrame, Scrollbar, Menu, Button, Checkbutton, Radiobutton, Label, Entry, Toplevel,\
-    BooleanVar, TclError, Tk, HORIZONTAL, VERTICAL, WORD, SUNKEN, INSERT, CURRENT, NONE, END, font, messagebox
+    BooleanVar, TclError, Tk, HORIZONTAL, VERTICAL, WORD, SUNKEN, INSERT, CURRENT, NONE, END, font, messagebox, SEL_FIRST, SEL_LAST
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import asksaveasfilename
 import fontpicker
@@ -23,6 +23,8 @@ class Interface(Frame):
         self.find_open = False
         self.replace_open = False
         self.goto_open = False
+        self.prior_search = ''
+        self.prior_goto = ''
 
         # init methods
         self.__init_main_window()
@@ -64,6 +66,8 @@ class Interface(Frame):
         self.scroll_bar_y.config(command=self.text_area.yview)
         self.text_area.config(xscrollcommand=self.scroll_bar_x.set, yscrollcommand=self.scroll_bar_y.set)
 
+        self.text_area.focus()
+
     def __build_menu_bar(self):
         # main and submenus
         self.menu_bar = Menu(self.master)
@@ -97,7 +101,7 @@ class Interface(Frame):
         #                           command=self.search_selected_text)
         self.edit_menu.add_separator()
         self.edit_menu.add_command(label='Find...', underline=0, accelerator='Ctrl+F', command=self.show_find)
-        self.edit_menu.add_command(label='Find Next', underline=5, accelerator='F3', command=self.show_find)
+        self.edit_menu.add_command(label='Find Next', underline=5, accelerator='F3', command=self.find_next)
         self.edit_menu.add_command(label='Replace...', underline=0, accelerator='Ctrl+H',
                                    command=self.show_find_replace)
         self.edit_menu.add_command(label='Go To...', underline=0, accelerator='Ctrl+G', command=self.show_goto)
@@ -140,7 +144,7 @@ class Interface(Frame):
 
     def show_context_menu(self, event):
         try:
-            self.context_menu.tk_popup(event.x_root, event.y_root, 0)
+            self.context_menu.tk_popup(event.x_root+90, event.y_root+10, 0)
         finally:
             self.context_menu.grab_release()
 
@@ -198,6 +202,7 @@ class Interface(Frame):
         self.master.bind_class('Text', '<Control-g>', self.show_goto)
         self.master.bind_class('Text', '<Control-G>', self.show_goto)
         self.master.bind_class('Text', '<F5>', self.time_date)
+        self.master.bind_class('Text', '<F3>', self.find_next)
         self.text_area.bind_class(self.text_area, '<Any-KeyPress>', self.on_key)
         self.text_area.bind_class(self.text_area, '<Button-1>', self.on_click)
         self.text_area.bind_class(self.text_area, '<Button-3>', self.show_context_menu)
@@ -286,9 +291,32 @@ class Interface(Frame):
     def write_text(self, text, start_index=1.0):
         self.text_area.insert(start_index, text)
 
+    def find_next(self, *args):
+        search_string = self.prior_search
+            
+        location = self.text_area.search(search_string, self.text_area.index(INSERT),
+                                                nocase=True)
+        log.info('searching next -- forwards')
 
-def get_index(text, index):
-    return tuple(map(int, str.split(text.index(index), ".")))
+        if location != '':
+            log.info('found ' + search_string + ' at position ' + location)
+            
+            row, col = get_index(location)
+            end_col = str(col+len(search_string))
+            end_location = str(str(row) + '.' + end_col)
+
+            self.text_area.mark_set("insert", end_location)
+            self.text_area.see("insert")
+            self.text_area.tag_remove('sel', "1.0", END)
+            self.text_area.tag_raise("sel")
+            self.text_area.tag_add('sel', location, end_location)
+            self.text_area.focus()
+        else:
+             log.warning(search_string + 'string not found')
+
+
+def get_index(index):
+    return tuple(map(int, str.split(index, ".")))
 
 class GotoWindow(Toplevel):
     def __init__(self, master, **kwargs):
@@ -309,8 +337,9 @@ class GotoWindow(Toplevel):
         # search string box
         self.find_label = Label(self, text='Line Number:')
         self.find_label.grid(row=0, column=0, sticky='nw', pady=(10, 0), padx=5)
-        self.entry_line = Entry(self, width=30)
+        self.entry_line = Entry(self, width=35)
         self.entry_line.grid(row=1, column=0, columnspan=2, sticky='new', padx=5, pady=(0, 10))
+        self.entry_find.focus()
 
         # find next, cancel buttons
         self.button_box = Frame(self)
@@ -335,14 +364,141 @@ class GotoWindow(Toplevel):
         self.destroy()
 
 
-class FindWindow(Toplevel):
+class FindReplaceWindow(Toplevel):
+    def __init__(self, master, **kwargs):
+        Toplevel.__init__(self, master, **kwargs)
+
+        self.master = master
+        self.attributes('-topmost', True)
+
+        self.direction = BooleanVar()
+        self.direction.set(False)
+        self.no_case_match = BooleanVar()
+        self.no_case_match.set(False)
+        
+        self.title('Replace')
+        self.resizable(False, False)
+        self.protocol("WM_DELETE_WINDOW", self.quit)
+
+        try:
+            self.wm_iconbitmap('transparent.ico')
+        except TclError:
+            log.error("unable to set icon to transparent.ico")
+            pass
+
+        # search string box
+        self.find_label = Label(self, text='Find what:')
+        self.find_label.grid(row=1, column=1, sticky='new', pady=(12, 10), padx=(5, 10))
+        self.entry_find = Entry(self, width=25)
+        self.entry_find.insert(END, self.master.prior_search)
+        self.entry_find.grid(row=1, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(10, 10))
+
+        # replace string box
+        self.replace_label = Label(self, text='Replace:')
+        self.replace_label.grid(row=2, column=1, sticky='new', pady=(6, 10), padx=(5, 10))
+        self.entry_replace = Entry(self, width=25)
+        self.entry_replace.grid(row=2, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(5, 10))
+
+        # buttons
+        self.button_frame = Frame(self)
+        self.button_frame.grid(row=1, column=4, rowspan=4, pady=(10, 0), padx=(10, 5), sticky='ne')
+        Button(self.button_frame, text="Find next",
+               command=self.find).grid(row=0, column=0, padx=5, pady=(0, 5), sticky='new')
+        Button(self.button_frame, text="Cancel",
+               command=self.quit).grid(row=1, column=0, padx=5, pady=(0, 5), sticky='new')
+        Button(self.button_frame, text="Replace",
+               command=self.replace).grid(row=2, column=0, padx=5, pady=(0, 5), sticky='new')
+        Button(self.button_frame, text="Replace all",
+               command=self.quit).grid(row=3, column=0, padx=5, pady=(0, 5), sticky='new')
+
+        # match case checkbox
+        self.match_case = Checkbutton(self, text='Match case')
+        self.match_case.grid(row=3, column=1, sticky="sw", padx=5, pady=0, columnspan=2)
+        self.match_whole_word = Checkbutton(self, text='Match whole word only')
+        self.match_whole_word.grid(row=4, column=1, sticky="sw", padx=5, pady=10, columnspan=2)
+
+        self.entry_find.focus()
+    
+    def find(self):
+        search_string = self.entry_find.get()
+
+        if self.no_case_match.get():
+            match_case = False
+        else:
+            match_case = True
+
+        if self.direction.get() == True:
+            row, col = get_index(self.master.text_area.index(INSERT))
+            beg_col = str(col-len(search_string))
+            beg_location = str(str(row) + '.' + beg_col)
+            location = self.master.text_area.search(search_string, self.master.text_area.index(beg_location),
+                                                    backwards=True,
+                                                    nocase=match_case)
+            log.info('searching backwards')
+        else:
+            log.info('searching forwards')
+            location = self.master.text_area.search(search_string, self.master.text_area.index(INSERT),
+                                                    nocase=match_case)
+
+        if location != '':
+            log.info('found ' + search_string + ' at position ' + location)
+            self.master.prior_search = search_string
+
+            row, col = get_index(location)
+            end_col = str(col+len(search_string))
+            end_location = str(str(row) + '.' + end_col)
+
+            self.master.text_area.mark_set("insert", end_location)
+            self.master.text_area.see("insert")
+            self.master.text_area.tag_remove('sel', "1.0", END)
+            self.master.text_area.tag_raise("sel")
+            self.master.text_area.tag_add('sel', location, end_location)
+            self.master.text_area.focus()
+        else:
+             log.warning(search_string + 'string not found')
+
+    def replace(self):
+        replace_string = self.entry_replace.get()
+
+        if self.master.prior_search == '':
+            self.master.prior_search = self.entry_find.get()
+            
+        search_string = self.master.prior_search
+
+        try:
+            if self.master.text_area.selection_get() == search_string:
+                self.master.text_area.delete(SEL_FIRST, SEL_LAST)
+                
+                row, col = get_index(self.master.text_area.index(INSERT))
+                self.master.text_area.insert(INSERT, replace_string)
+                end_location = str(str(row) + '.' + str(col))
+                
+                self.master.text_area.tag_add('sel', end_location, INSERT)
+                self.master.text_area.focus()
+                
+        except TclError:
+            log.warning('TclError -> Invalid selection?')
+        
+        self.master.find_next()
+
+
+    def quit(self):
+        self.master.replace_open = False
+        self.destroy()
+
+        
+class FindWindow(FindReplaceWindow):
     def __init__(self, master, **kwargs):
         Toplevel.__init__(self, master, **kwargs)
 
         self.master = master
 
+        self.attributes('-topmost', True)
+
         self.direction = BooleanVar()
         self.direction.set(False)
+        self.no_case_match = BooleanVar()
+        self.no_case_match.set(False)
 
         self.title('Find')
         self.resizable(False, False)
@@ -358,18 +514,23 @@ class FindWindow(Toplevel):
         self.find_label = Label(self, text='Find what:')
         self.find_label.grid(row=1, column=1, sticky='new', pady=(12, 10), padx=(5, 10))
         self.entry_find = Entry(self, width=25)
+        self.entry_find.insert(END, self.master.prior_search)
         self.entry_find.grid(row=1, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(10, 10))
 
         # find next, cancel buttons
         self.button_frame = Frame(self)
         self.button_frame.grid(row=1, column=4, rowspan=2, pady=(10, 0), padx=(10, 5), sticky='ne')
-        Button(self.button_frame, text="Find next",
+        self.find_button = Button(self.button_frame, text="Find next",
                command=self.find).grid(row=0, column=0, padx=5, pady=(0, 0), sticky='ew')
-        Button(self.button_frame, text="Cancel",
+        self.cancel_button = Button(self.button_frame, text="Cancel",
                command=self.quit).grid(row=1, column=0, padx=5, pady=(5, 0), sticky='ew')
 
+        # key bindings
+        self.bind_class('Text', 'Button', '<Return>', self.find)
+        self.bind_class('Text', 'Button', '<Escape>', self.quit)
+        
         # match case checkbox
-        self.match_case = Checkbutton(self, text='Match case')
+        self.match_case = Checkbutton(self, text='Match case', variable=self.no_case_match)
         self.match_case.grid(row=2, column=1, sticky="sw", padx=5, pady=10, columnspan=2)
 
         # directional radiobutton
@@ -380,77 +541,12 @@ class FindWindow(Toplevel):
         self.down_button = Radiobutton(self.direction_box, text='Down', variable=self.direction, value=False)
         self.down_button.grid(row=1, column=2, padx=(0, 5))
 
-    def find(self):
-        search_string = self.entry_find.get()
-        location = self.master.text_area.search(search_string, self.master.text_area.index(INSERT))
+        self.entry_find.focus()
 
-        if location != '':
-            log.info('found ' + search_string + ' at position ' + location)
-
-            row, col = get_index(self.master.text_area, location)
-            end_col = str(col+len(search_string))
-            end_location = str(str(row) + '.' + end_col)
-
-            self.master.text_area.tag_remove('sel', "1.0", END)
-            self.master.text_area.tag_add('sel', location, end_location)
-            self.master.text_area.mark_set("insert", end_location)
-            self.master.text_area.see("insert")
-
-        else:
-             log.warning(search_string + 'string not found')
-
-    def quit(self):
+    def quit(self, *args):
         self.master.find_open = False
         self.destroy()
 
-
-class FindReplaceWindow(Toplevel):
-    def __init__(self, master, **kwargs):
-        Toplevel.__init__(self, master, **kwargs)
-
-        self.title('Replace')
-        self.resizable(False, False)
-        self.protocol("WM_DELETE_WINDOW", self.quit)
-
-        try:
-            self.wm_iconbitmap('transparent.ico')
-        except TclError:
-            log.error("unable to set icon to transparent.ico")
-            pass
-
-        # search string box
-        self.find_label = Label(self, text='Find what:')
-        self.find_label.grid(row=1, column=1, sticky='new', pady=(12, 10), padx=(5, 10))
-        self.entry_find = Entry(self, width=25)
-        self.entry_find.grid(row=1, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(10, 10))
-
-        # replace string box
-        self.replace_label = Label(self, text='Replace:')
-        self.replace_label.grid(row=2, column=1, sticky='new', pady=(6, 10), padx=(5, 10))
-        self.entry_replace = Entry(self, width=25)
-        self.entry_replace.grid(row=2, column=2, columnspan=2, sticky='new', padx=(0, 0), pady=(5, 10))
-
-        # buttons
-        self.button_frame = Frame(self)
-        self.button_frame.grid(row=1, column=4, rowspan=4, pady=(10, 0), padx=(10, 5), sticky='ne')
-        Button(self.button_frame, text="Find next",
-               command=self.quit).grid(row=0, column=0, padx=5, pady=(0, 5), sticky='new')
-        Button(self.button_frame, text="Cancel",
-               command=self.quit).grid(row=1, column=0, padx=5, pady=(0, 5), sticky='new')
-        Button(self.button_frame, text="Replace",
-               command=self.quit).grid(row=2, column=0, padx=5, pady=(0, 5), sticky='new')
-        Button(self.button_frame, text="Replace all",
-               command=self.quit).grid(row=3, column=0, padx=5, pady=(0, 5), sticky='new')
-
-        # match case checkbox
-        self.match_case = Checkbutton(self, text='Match case')
-        self.match_case.grid(row=3, column=1, sticky="sw", padx=5, pady=0, columnspan=2)
-        self.match_whole_word = Checkbutton(self, text='Match whole word only')
-        self.match_whole_word.grid(row=4, column=1, sticky="sw", padx=5, pady=10, columnspan=2)
-
-    def quit(self):
-        self.master.replace_open = False
-        self.destroy()
 
 
 def open_file():
@@ -467,6 +563,8 @@ def open_file():
         notepad.clear_text()
         notepad.write_text(f.read())
         notepad.set_title(os.path.basename(file))
+    except TypeError:
+        log.error('TypeError', file)
     except FileNotFoundError:
         log.error('FileNotFoundError', file)
 
@@ -526,7 +624,7 @@ def show_about():
 
 # global vars
 file = ''  # path to current file
-log.basicConfig(level=log.INFO)
+log.basicConfig(level=log.ERROR)
 
 window = Tk()
 window.geometry("800x600")
