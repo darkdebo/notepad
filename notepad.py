@@ -146,7 +146,7 @@ class Interface(Frame):
 
     def show_context_menu(self, event):
         try:
-            self.context_menu.tk_popup(event.x_root+90, event.y_root+10, 0)
+            self.context_menu.tk_popup(event.x_root, event.y_root, 0)
         finally:
             self.context_menu.grab_release()
 
@@ -182,11 +182,11 @@ class Interface(Frame):
         if self.word_wrap.get():
             self.text_area.config(wrap=WORD)
             self.scroll_bar_x.grid_forget()
-            log.info("word wrap on")
+            log.info("word wrap on, scroll bar off")
         else:
             self.text_area.config(wrap=NONE)
             self.scroll_bar_x.grid(column=0, row=1, sticky='nsew')
-            log.info("word wrap off")
+            log.info("word wrap off, scroll bar on")
 
     def __bind_shortcuts(self):
         self.master.bind_class('Text', '<Control-a>', self.select_all)
@@ -328,7 +328,7 @@ class GotoWindow(Toplevel):
         try:
             self.wm_iconbitmap('transparent.ico')
         except TclError:
-            log.error("unable to set icon to transparent.ico")
+            log.info("unable to set icon to transparent.ico, window manager may not support")
             pass
 
         self.title('Go To Line')
@@ -549,58 +549,56 @@ class FindWindow(FindReplaceWindow):
 
 
 def open_file():
-    global file
-    file = askopenfilename(defaultextension='.txt',
+    global FILE
+
+    FILE = askopenfilename(defaultextension='.txt',
                            initialdir='.',
                            filetypes=[('All Files', '*.*'),
                                       ('Text Documents', '*.txt'),
                                       ('Log Files', '*.log')])
 
-    log.info("attempting to open file " + str(file))
+    log.info("attempting to open file " + str(FILE))
 
     try:
-        f = open(file, 'r')
+        f = open(FILE, 'r')
         notepad.clear_text()
         notepad.write_text(f.read())
         f.close()
-        notepad.set_title(os.path.basename(file))
+        notepad.set_title(os.path.basename(FILE))
 
-        name, extension = file.split('.')
-        print(name, extension)
-
+        name, extension = FILE.split('.')
         if extension.upper() == 'LOG':
-            print('got here')
-
-            with open(file) as f:
+            with open(FILE) as f:
                 line = f.readline()
 
-            if line.upper() == '.LOG\n':
+            if line.upper() == '.LOG\n' or line.upper() == '.LOG\r\n':
+                log.info(FILE + ' is a log, appending time stamp.')
                 notepad.time_date()
 
     except TypeError:
-        log.error('TypeError', file)
+        log.error('TypeError', FILE)
     except FileNotFoundError:
-        log.error('FileNotFoundError', file)
+        log.error('FileNotFoundError', FILE)
 
 
 def new_file():
-    global file
+    global FILE
     notepad.set_title('Untitled')
-    file = ''
+    FILE = ''
     notepad.clear_text()
 
 
 def save_file_as():
-    global file
+    global FILE
 
     try:
-        file = asksaveasfilename(initialfile='*.txt', defaultextension='.txt',
+        FILE = asksaveasfilename(initialfile='*.txt', defaultextension='.txt',
                                  filetypes=[('All Files', '*.*'), ('Text Documents', '*.txt')])
 
-        if file != '':
+        if FILE != '':
             # Try to save the file
-            notepad.set_title(os.path.basename(file))
-            f = open(file, 'w')
+            notepad.set_title(os.path.basename(FILE))
+            f = open(FILE, 'w')
             f.write(notepad.get_text())
             # Change the window title
             f.close()
@@ -610,12 +608,12 @@ def save_file_as():
 
 
 def save_file(*_):
-    global file
+    global FILE
 
-    if file != '':
+    if FILE != '':
         try:
-            print(file)
-            f = open(file, 'w')
+            print(FILE)
+            f = open(FILE, 'w')
             f.write(notepad.get_text())
             f.close()
 
@@ -637,8 +635,8 @@ def show_about():
 # Run main application
 
 # global vars
-file = ''  # path to current file
-log.basicConfig(level=log.ERROR)
+FILE = ''  # path to current file
+log.basicConfig(level=log.INFO)
 
 window = Tk()
 window.geometry("800x600")
