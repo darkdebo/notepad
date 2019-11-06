@@ -20,7 +20,7 @@ Users are encouraged to open any issues found with the program.
 
 Pull requests are welcome to fix issues, or to add new features.
 
-New features are welcome only if they are present in a version of Microsoft Notepad, and are implemented in the same way. 
+New features are welcome if they are present in a version of Microsoft Notepad, and are implemented in the same way. 
 
 ## Files
 [notepad.py](notepad.py) - Main program, execute this to start

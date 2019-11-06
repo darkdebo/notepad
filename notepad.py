@@ -3,7 +3,8 @@ import os
 import webbrowser
 from datetime import datetime
 from tkinter import Frame, Text, LabelFrame, Scrollbar, Menu, Button, Checkbutton, Radiobutton, Label, Entry, Toplevel,\
-    BooleanVar, TclError, Tk, HORIZONTAL, VERTICAL, WORD, SUNKEN, INSERT, CURRENT, NONE, END, font, messagebox, SEL_FIRST, SEL_LAST
+    BooleanVar, TclError, Tk, HORIZONTAL, VERTICAL, WORD, SUNKEN, INSERT, CURRENT, NONE, END, font, messagebox, \
+    SEL_FIRST, SEL_LAST
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import asksaveasfilename
 import fontpicker
@@ -73,7 +74,7 @@ class Interface(Frame):
         self.menu_bar = Menu(self.master)
         self.file_menu = Menu(self.menu_bar, tearoff=0)
         self.edit_menu = Menu(self.menu_bar, tearoff=0)
-        self.__format_menu = Menu(self.menu_bar, tearoff=0)
+        self.format_menu = Menu(self.menu_bar, tearoff=0)
         self.thisViewMenu = Menu(self.menu_bar, tearoff=0)
         self.help_menu = Menu(self.menu_bar, tearoff=0)
 
@@ -97,8 +98,8 @@ class Interface(Frame):
         self.edit_menu.add_command(label='Copy', underline=0, accelerator='Ctrl+C', command=self.copy)
         self.edit_menu.add_command(label='Paste', underline=0, accelerator='Ctrl+V', command=self.paste)
         self.edit_menu.add_command(label='Delete', underline=2, accelerator='Del', command=self.delete)
-        # self.edit_menu.add_command(label='Search with Bing... ', underline=0, accelerator='Ctrl+B',
-        #                           command=self.search_selected_text)
+        self.edit_menu.add_command(label='Search with Bing... ', underline=0, accelerator='Ctrl+B',
+                                   command=self.search_selected_text)
         self.edit_menu.add_separator()
         self.edit_menu.add_command(label='Find...', underline=0, accelerator='Ctrl+F', command=self.show_find)
         self.edit_menu.add_command(label='Find Next', underline=5, accelerator='F3', command=self.find_next)
@@ -106,14 +107,15 @@ class Interface(Frame):
                                    command=self.show_find_replace)
         self.edit_menu.add_command(label='Go To...', underline=0, accelerator='Ctrl+G', command=self.show_goto)
         self.edit_menu.add_separator()
-        self.edit_menu.add_command(label='Select All', underline=7, accelerator='Ctrl+A', command=self.select_all)
+        self.edit_menu.add_command(label='Select All', underline=7, accelerator='Ctrl+A',
+                                   command=lambda: self.select_all())
         self.edit_menu.add_command(label='Time/Date', underline=5, accelerator='F5', command=self.time_date)
 
         # Format Menu
-        self.menu_bar.add_cascade(label='Format', underline=0, menu=self.__format_menu)
-        self.__format_menu.add_checkbutton(label='Word Wrap', underline=0, variable=self.word_wrap,
-                                           command=self.toggle_word_wrap)
-        self.__format_menu.add_command(label='Font...', underline=0, command=self.set_font)
+        self.menu_bar.add_cascade(label='Format', underline=0, menu=self.format_menu)
+        self.format_menu.add_checkbutton(label='Word Wrap', underline=0, variable=self.word_wrap,
+                                         command=self.toggle_word_wrap)
+        self.format_menu.add_command(label='Font...', underline=0, command=self.set_font)
 
         # View Menu
         self.menu_bar.add_cascade(label='View', underline=1, menu=self.thisViewMenu)
@@ -211,35 +213,35 @@ class Interface(Frame):
         self.master.destroy()
         exit()
 
-    def undo(self, *args):
+    def undo(self, *_):
         self.text_area.event_generate('<<Undo>>')
 
-    def on_key(self, event=None):
+    def on_key(self, *_):
         self.update_status_bar(INSERT)
 
-    def on_click(self, event=None):
+    def on_click(self, *_):
         self.update_status_bar(CURRENT)
 
     def update_status_bar(self, obj):
         row, col = self.text_area.index(obj).split('.')
         self.status_bar.config(text=str('Ln ' + row + ', Col ' + col + ' \t'))
 
-    def cut(self, *args):
+    def cut(self, *_):
         self.text_area.event_generate('<<Cut>>')
 
-    def copy(self, *args):
+    def copy(self, *_):
         self.text_area.event_generate('<<Copy>>')
 
-    def paste(self, *args):
+    def paste(self, *_):
         self.text_area.event_generate('<<Paste>>')
 
-    def select_all(self, *args):
+    def select_all(self, *_):
         self.text_area.tag_add('sel', '1.0', 'end')
 
-    def delete(self):
+    def delete(self, *_):
         self.text_area.event_generate('<Delete>')
 
-    def search_selected_text(self, *args):
+    def search_selected_text(self, *_):
         try:
             s = self.text_area.selection_get()
             if s is not None:
@@ -249,24 +251,22 @@ class Interface(Frame):
         except TclError:
             print('TclError - Probably because nothing was selected ')
 
-    def time_date(self, *kwargs):
+    def time_date(self, *_):
         now = datetime.now()
-        # s = now.strftime("%X %x")
-        # s = now.ctime()
         s = now.strftime("%I:%M %p %m/%d/%Y")
         self.text_area.insert(INSERT, s)
 
-    def show_find(self, *args):
+    def show_find(self, *_):
         if not self.find_open:
             self.find_open = True
             FindWindow(master=self)
 
-    def show_find_replace(self, *args):
+    def show_find_replace(self, *_):
         if not self.replace_open:
             self.replace_open = True
             FindReplaceWindow(master=self)
 
-    def show_goto(self, *args):
+    def show_goto(self, *_):
         if not self.goto_open:
             self.goto_open = True
             GotoWindow(master=self)
@@ -291,11 +291,11 @@ class Interface(Frame):
     def write_text(self, text, start_index=1.0):
         self.text_area.insert(start_index, text)
 
-    def find_next(self, *args):
+    def find_next(self, _):
         search_string = self.prior_search
             
         location = self.text_area.search(search_string, self.text_area.index(INSERT),
-                                                nocase=True)
+                                         nocase=True)
         log.info('searching next -- forwards')
 
         if location != '':
@@ -312,11 +312,12 @@ class Interface(Frame):
             self.text_area.tag_add('sel', location, end_location)
             self.text_area.focus()
         else:
-             log.warning(search_string + 'string not found')
+            log.warning(search_string + 'string not found')
 
 
 def get_index(index):
     return tuple(map(int, str.split(index, ".")))
+
 
 class GotoWindow(Toplevel):
     def __init__(self, master, **kwargs):
@@ -339,7 +340,7 @@ class GotoWindow(Toplevel):
         self.find_label.grid(row=0, column=0, sticky='nw', pady=(10, 0), padx=5)
         self.entry_line = Entry(self, width=35)
         self.entry_line.grid(row=1, column=0, columnspan=2, sticky='new', padx=5, pady=(0, 10))
-        self.entry_find.focus()
+        self.entry_line.focus()
 
         # find next, cancel buttons
         self.button_box = Frame(self)
@@ -427,7 +428,7 @@ class FindReplaceWindow(Toplevel):
         else:
             match_case = True
 
-        if self.direction.get() == True:
+        if self.direction.get():
             row, col = get_index(self.master.text_area.index(INSERT))
             beg_col = str(col-len(search_string))
             beg_location = str(str(row) + '.' + beg_col)
@@ -455,12 +456,12 @@ class FindReplaceWindow(Toplevel):
             self.master.text_area.tag_add('sel', location, end_location)
             self.master.text_area.focus()
         else:
-             log.warning(search_string + 'string not found')
+            log.warning(search_string + 'string not found')
 
     def replace(self):
         replace_string = self.entry_replace.get()
 
-        if self.master.prior_search == '':
+        if self.master.prior_search != replace_string:
             self.master.prior_search = self.entry_find.get()
             
         search_string = self.master.prior_search
@@ -480,7 +481,6 @@ class FindReplaceWindow(Toplevel):
             log.warning('TclError -> Invalid selection?')
         
         self.master.find_next()
-
 
     def quit(self):
         self.master.replace_open = False
@@ -521,9 +521,9 @@ class FindWindow(FindReplaceWindow):
         self.button_frame = Frame(self)
         self.button_frame.grid(row=1, column=4, rowspan=2, pady=(10, 0), padx=(10, 5), sticky='ne')
         self.find_button = Button(self.button_frame, text="Find next",
-               command=self.find).grid(row=0, column=0, padx=5, pady=(0, 0), sticky='ew')
+                                  command=self.find).grid(row=0, column=0, padx=5, pady=(0, 0), sticky='ew')
         self.cancel_button = Button(self.button_frame, text="Cancel",
-               command=self.quit).grid(row=1, column=0, padx=5, pady=(5, 0), sticky='ew')
+                                    command=self.quit).grid(row=1, column=0, padx=5, pady=(5, 0), sticky='ew')
 
         # key bindings
         self.bind_class('Text', 'Button', '<Return>', self.find)
@@ -543,10 +543,9 @@ class FindWindow(FindReplaceWindow):
 
         self.entry_find.focus()
 
-    def quit(self, *args):
+    def quit(self, *_):
         self.master.find_open = False
         self.destroy()
-
 
 
 def open_file():
@@ -554,7 +553,8 @@ def open_file():
     file = askopenfilename(defaultextension='.txt',
                            initialdir='.',
                            filetypes=[('All Files', '*.*'),
-                                      ('Text Documents', '*.txt')])
+                                      ('Text Documents', '*.txt'),
+                                      ('Log Files', '*.log')])
 
     log.info("attempting to open file " + str(file))
 
@@ -562,7 +562,21 @@ def open_file():
         f = open(file, 'r')
         notepad.clear_text()
         notepad.write_text(f.read())
+        f.close()
         notepad.set_title(os.path.basename(file))
+
+        name, extension = file.split('.')
+        print(name, extension)
+
+        if extension.upper() == 'LOG':
+            print('got here')
+
+            with open(file) as f:
+                line = f.readline()
+
+            if line.upper() == '.LOG\n':
+                notepad.time_date()
+
     except TypeError:
         log.error('TypeError', file)
     except FileNotFoundError:
@@ -595,7 +609,7 @@ def save_file_as():
         messagebox.showerror('Notepad', 'Error saving file.')
 
 
-def save_file():
+def save_file(*_):
     global file
 
     if file != '':
