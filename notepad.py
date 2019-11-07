@@ -566,7 +566,7 @@ def open_file():
         f.close()
         notepad.set_title(os.path.basename(FILE))
 
-        name, extension = FILE.split('.')
+        name, extension = os.path.basename(FILE).split('.')
         if extension.upper() == 'LOG':
             with open(FILE) as f:
                 line = f.readline()
