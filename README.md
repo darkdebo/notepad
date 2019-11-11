@@ -25,7 +25,7 @@ New features are welcome if they are present in a version of Microsoft Notepad, 
 ## Files
 [notepad.py](notepad.py) - Main program, execute this to start
 
-[tkfontpicker](tkfontchooser.py) - Copy of j4321's [tkfontchooser](www.github.com/j4321/tkfontchooser/), made 4/11/2019
+[tkfontpicker.py](tkfontchooser.py) - Copy of j4321's [tkfontchooser](www.github.com/j4321/tkfontchooser/), made 4/11/2019
 
 [fontpicker.py](fontpicker.py) - Modifications to [tkfontpicker](tkfontchooser.py) to make interface match Font dialog in Microsoft Notepad
 
