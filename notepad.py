@@ -2,11 +2,12 @@ import logging as log
 import os
 import webbrowser
 from datetime import datetime
-from tkinter import Frame, Text, LabelFrame, Scrollbar, Menu, Button, Checkbutton, Radiobutton, Label, Entry, Toplevel,\
+from tkinter import Frame, Text, LabelFrame, Scrollbar, Menu, Button, Checkbutton, Radiobutton, Label, Entry, Toplevel, \
     BooleanVar, TclError, Tk, HORIZONTAL, VERTICAL, WORD, SUNKEN, INSERT, CURRENT, NONE, END, font, messagebox, \
     SEL_FIRST, SEL_LAST
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import asksaveasfilename
+
 import fontpicker
 
 
@@ -145,6 +146,7 @@ class Interface(Frame):
             self.context_menu.add_command(label='Search with Bing... ', underline=0, accelerator='Ctrl+B',
                                           command=self.search_selected_text)
             self.context_menu.tk_popup(event.x_root, event.y_root)
+
         finally:
             self.context_menu.grab_release()
 
@@ -296,16 +298,16 @@ class Interface(Frame):
 
     def find_next(self, _):
         search_string = self.prior_search
-            
+
         location = self.text_area.search(search_string, self.text_area.index(INSERT),
                                          nocase=True)
         log.info('searching next -- forwards')
 
         if location != '':
             log.info('found ' + search_string + ' at position ' + location)
-            
+
             row, col = get_index(location)
-            end_col = str(col+len(search_string))
+            end_col = str(col + len(search_string))
             end_location = str(str(row) + '.' + end_col)
 
             self.text_area.mark_set("insert", end_location)
@@ -379,7 +381,7 @@ class FindReplaceWindow(Toplevel):
         self.direction.set(False)
         self.no_case_match = BooleanVar()
         self.no_case_match.set(False)
-        
+
         self.title('Replace')
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.quit)
@@ -422,7 +424,7 @@ class FindReplaceWindow(Toplevel):
         self.match_whole_word.grid(row=4, column=1, sticky="sw", padx=5, pady=10, columnspan=2)
 
         self.entry_find.focus()
-    
+
     def find(self):
         search_string = self.entry_find.get()
 
@@ -433,7 +435,7 @@ class FindReplaceWindow(Toplevel):
 
         if self.direction.get():
             row, col = get_index(self.master.text_area.index(INSERT))
-            beg_col = str(col-len(search_string))
+            beg_col = str(col - len(search_string))
             beg_location = str(str(row) + '.' + beg_col)
             location = self.master.text_area.search(search_string, self.master.text_area.index(beg_location),
                                                     backwards=True,
@@ -449,7 +451,7 @@ class FindReplaceWindow(Toplevel):
             self.master.prior_search = search_string
 
             row, col = get_index(location)
-            end_col = str(col+len(search_string))
+            end_col = str(col + len(search_string))
             end_location = str(str(row) + '.' + end_col)
 
             self.master.text_area.mark_set("insert", end_location)
@@ -466,30 +468,30 @@ class FindReplaceWindow(Toplevel):
 
         if self.master.prior_search != replace_string:
             self.master.prior_search = self.entry_find.get()
-            
+
         search_string = self.master.prior_search
 
         try:
             if self.master.text_area.selection_get() == search_string:
                 self.master.text_area.delete(SEL_FIRST, SEL_LAST)
-                
+
                 row, col = get_index(self.master.text_area.index(INSERT))
                 self.master.text_area.insert(INSERT, replace_string)
                 end_location = str(str(row) + '.' + str(col))
-                
+
                 self.master.text_area.tag_add('sel', end_location, INSERT)
                 self.master.text_area.focus()
-                
+
         except TclError:
             log.warning('TclError -> Invalid selection?')
-        
+
         self.master.find_next()
 
     def quit(self):
         self.master.replace_open = False
         self.destroy()
 
-        
+
 class FindWindow(FindReplaceWindow):
     def __init__(self, master, **kwargs):
         Toplevel.__init__(self, master, **kwargs)
@@ -531,7 +533,7 @@ class FindWindow(FindReplaceWindow):
         # key bindings
         self.bind_class('Text', 'Button', '<Return>', self.find)
         self.bind_class('Text', 'Button', '<Escape>', self.quit)
-        
+
         # match case checkbox
         self.match_case = Checkbutton(self, text='Match case', variable=self.no_case_match)
         self.match_case.grid(row=2, column=1, sticky="sw", padx=5, pady=10, columnspan=2)
@@ -560,28 +562,27 @@ def open_file():
                                       ('Text Documents', '*.txt'),
                                       ('Log Files', '*.log')])
 
-    log.info("attempting to open file " + str(FILE))
-
     try:
+        log.info("attempting to open file " + str(FILE))
         f = open(FILE, 'r')
         notepad.clear_text()
-        notepad.write_text(f.read())
+        lines = f.read()
+        notepad.write_text(lines)
         f.close()
         notepad.set_title(os.path.basename(FILE))
-
-        name, extension = os.path.basename(FILE).split('.')
-        if extension.upper() == 'LOG':
-            with open(FILE) as f:
-                line = f.readline()
-
-            if line.upper() == '.LOG\n' or line.upper() == '.LOG\r\n':
-                log.info(FILE + ' is a log, appending time stamp.')
-                notepad.time_date()
+        log.info(str(FILE) + " opened")
 
     except TypeError:
         log.error('TypeError', FILE)
     except FileNotFoundError:
         log.error('FileNotFoundError', FILE)
+
+    line = lines[:4]
+    print(line)
+
+    if line.upper() == '.LOG':
+        log.info(FILE + ' is a log, appending time stamp.')
+        notepad.time_date()
 
 
 def new_file():
