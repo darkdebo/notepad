@@ -46,30 +46,13 @@ class FontChooser(tkfontchooser.FontChooser):
         font_dict["size"] = font_dict.get("size", 10)
 
         # --- creation of the widgets
-        # ------ style parameters (bold, italic ...)
         options_frame = Frame(self, relief='groove')
         self.font_family = StringVar(self, " ".join(self.fonts))
         self.font_size = StringVar(self, " ".join(self.sizes))
+        self.format_type = StringVar(self, " ".join(self.sizes))
         self.var_bold = BooleanVar(self, font_dict["weight"] == "bold")
-        b_bold = Checkbutton(options_frame, text="Bold",
-                             command=self.toggle_bold,
-                             variable=self.var_bold)
-        b_bold.grid(row=0, sticky="w", padx=4, pady=(4, 2))
         self.var_italic = BooleanVar(self, font_dict["slant"] == "italic")
-        b_italic = Checkbutton(options_frame, text="Italic",
-                               command=self.toggle_italic,
-                               variable=self.var_italic)
-        b_italic.grid(row=1, sticky="w", padx=4, pady=2)
         self.var_underline = BooleanVar(self, font_dict["underline"])
-        b_underline = Checkbutton(options_frame, text="Underline",
-                                  command=self.toggle_underline,
-                                  variable=self.var_underline)
-        b_underline.grid(row=2, sticky="w", padx=4, pady=2)
-        self.var_overstrike = BooleanVar(self, font_dict["overstrike"])
-        b_overstrike = Checkbutton(options_frame, text="Strikethrough",
-                                   variable=self.var_overstrike,
-                                   command=self.toggle_overstrike)
-        b_overstrike.grid(row=3, sticky="w", padx=4, pady=(2, 4))
 
         # ------ Size and family
         self.var_size = StringVar(self)
@@ -79,6 +62,9 @@ class FontChooser(tkfontchooser.FontChooser):
         self.entry_size = Entry(self, width=4, validate="key",
                                 textvariable=self.var_size,
                                 validatecommand=(self._validate_size, "%d", "%P", "%V"))
+
+        self.entry_format = Entry(self, width=8)
+
         self.list_family = Listbox(self, selectmode="browse",
                                    listvariable=self.font_family,
                                    highlightthickness=0,
@@ -89,10 +75,17 @@ class FontChooser(tkfontchooser.FontChooser):
                                  highlightthickness=0,
                                  exportselection=False,
                                  width=4)
+        self.format_box = Listbox(self, selectmode="browse",
+                                  listvariable=self.font_size,
+                                  highlightthickness=0,
+                                  exportselection=False,
+                                  width=8)
         scroll_family = Scrollbar(self, orient='vertical',
                                   command=self.list_family.yview)
         scroll_size = Scrollbar(self, orient='vertical',
                                 command=self.list_size.yview)
+        scroll_format = Scrollbar(self, orient='vertical',
+                                command=self.format_box.yview)
         family_label = Label(self, text='Font:')
         style_label = Label(self, text='Font style:')
         size_label = Label(self, text='Size:')
@@ -134,7 +127,8 @@ class FontChooser(tkfontchooser.FontChooser):
         scroll_family.grid(row=2, column=1, sticky='ns', pady=(1, 10))
 
         style_label.grid(row=0, column=2, sticky='nsew', padx=(20, 1), pady=(10, 1))
-        options_frame.grid(row=1, column=2, rowspan=2, padx=(20, 1), pady=(1, 10), sticky='new')
+        self.entry_family.grid(row=1, column=2, sticky="nsew", pady=(1, 1), padx=(15, 0), columnspan=2)
+        self.format_box.grid(row=2, column=2, sticky="nsew", pady=(1, 10), padx=(15, 0))
 
         size_label.grid(row=0, column=3, sticky='nsew', padx=(20, 1), pady=(10, 1))
         self.entry_size.grid(row=1, column=3, sticky="nsew", pady=(1, 1), padx=(20, 15), columnspan=2)
