@@ -30,7 +30,6 @@ class Interface(Frame):
         # init methods
         self.__init_main_window()
         self.__build_status_bar()
-        self.__build_context_menu()
         self.__build_menu_bar()
         self.__bind_shortcuts()
         self.toggle_word_wrap()
@@ -130,23 +129,22 @@ class Interface(Frame):
 
         self.master.config(menu=self.menu_bar)
 
-    def __build_context_menu(self):
-        self.context_menu = Menu(self.master, tearoff=0)
-        self.context_menu.add_command(label='Undo', underline=2, accelerator='Ctrl+Z', command=self.undo)
-        self.context_menu.add_separator()
-        self.context_menu.add_command(label='Cut', underline=2, accelerator='Ctrl+X', command=self.cut)
-        self.context_menu.add_command(label='Copy', underline=0, accelerator='Ctrl+C', command=self.copy)
-        self.context_menu.add_command(label='Paste', underline=0, accelerator='Ctrl+V', command=self.paste)
-        self.context_menu.add_command(label='Delete', underline=2, accelerator='Del', command=self.delete)
-        self.context_menu.add_separator()
-        self.context_menu.add_command(label='Select All', underline=2, accelerator='Ctrl+A', command=self.select_all)
-        self.context_menu.add_separator()
-        self.context_menu.add_command(label='Search with Bing... ', underline=0, accelerator='Ctrl+B',
-                                      command=self.search_selected_text)
-
     def show_context_menu(self, event):
         try:
-            self.context_menu.tk_popup(event.x_root, event.y_root, 0)
+            self.context_menu = Menu(self.master, tearoff=0)
+            self.context_menu.add_command(label='Undo', underline=2, accelerator='Ctrl+Z', command=self.undo)
+            self.context_menu.add_separator()
+            self.context_menu.add_command(label='Cut', underline=2, accelerator='Ctrl+X', command=self.cut)
+            self.context_menu.add_command(label='Copy', underline=0, accelerator='Ctrl+C', command=self.copy)
+            self.context_menu.add_command(label='Paste', underline=0, accelerator='Ctrl+V', command=self.paste)
+            self.context_menu.add_command(label='Delete', underline=2, accelerator='Del', command=self.delete)
+            self.context_menu.add_separator()
+            self.context_menu.add_command(label='Select All', underline=2, accelerator='Ctrl+A',
+                                          command=self.select_all)
+            self.context_menu.add_separator()
+            self.context_menu.add_command(label='Search with Bing... ', underline=0, accelerator='Ctrl+B',
+                                          command=self.search_selected_text)
+            self.context_menu.tk_popup(event.x_root, event.y_root)
         finally:
             self.context_menu.grab_release()
 
@@ -221,6 +219,11 @@ class Interface(Frame):
 
     def on_click(self, *_):
         self.update_status_bar(CURRENT)
+
+        try:
+            self.context_menu.destroy()
+        except TclError:
+            log.error('error occurred while trying to exit context menu')
 
     def update_status_bar(self, obj):
         row, col = self.text_area.index(obj).split('.')
