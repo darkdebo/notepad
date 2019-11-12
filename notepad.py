@@ -224,8 +224,8 @@ class Interface(Frame):
 
         try:
             self.context_menu.destroy()
-        except TclError:
-            log.error('error occurred while trying to exit context menu')
+        except AttributeError:
+            log.warning('error occurred while trying to exit context menu, probably not instanciated')
 
     def update_status_bar(self, obj):
         row, col = self.text_area.index(obj).split('.')
@@ -389,7 +389,7 @@ class FindReplaceWindow(Toplevel):
         try:
             self.wm_iconbitmap('transparent.ico')
         except TclError:
-            log.error("unable to set icon to transparent.ico")
+            log.warning("unable to set icon to transparent.ico")
             pass
 
         # search string box
