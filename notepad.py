@@ -2,17 +2,16 @@ import logging as log
 import os
 import webbrowser
 from datetime import datetime
-from tkinter import Frame, Text, LabelFrame, Scrollbar, Menu, Button, Checkbutton, Radiobutton, Label, Entry, Toplevel, \
-    BooleanVar, TclError, Tk, HORIZONTAL, VERTICAL, WORD, SUNKEN, INSERT, CURRENT, NONE, END, font, messagebox, \
+from tkinter import Frame, Text, LabelFrame, Scrollbar, Menu, Button, Checkbutton, Radiobutton, Label, Entry, font, \
+    BooleanVar, TclError, Tk, HORIZONTAL, VERTICAL, WORD, SUNKEN, INSERT, CURRENT, NONE, END, Toplevel, messagebox, \
     SEL_FIRST, SEL_LAST
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import asksaveasfilename
-
 import fontpicker
 
 
 class Interface(Frame):
-    def __init__(self, master=None, *kwargs):
+    def __init__(self, master=None, *_):
         Frame.__init__(self, master)
         self.master = master
 
@@ -34,6 +33,7 @@ class Interface(Frame):
         self.__build_menu_bar()
         self.__bind_shortcuts()
         self.toggle_word_wrap()
+        self.context_menu = Menu(self.master, tearoff=0)
 
     def __init_main_window(self):
         self.text_area = Text(self.master, undo=True)
@@ -154,17 +154,13 @@ class Interface(Frame):
         fnt = fontpicker.ask_font(family=self.fnt.actual(option='family'),
                                   size=self.fnt.actual(option='size'),
                                   weight=self.fnt.actual(option='weight'),
-                                  slant=self.fnt.actual(option='slant'),
-                                  underline=self.fnt.actual(option='underline'),
-                                  overstrike=self.fnt.actual(option='overstrike'))
+                                  slant=self.fnt.actual(option='slant'))
 
         if fnt:
             self.fnt = font.Font(family=fnt['family'],
                                  size=int(fnt['size']),
                                  weight=fnt['weight'],
-                                 slant=fnt['slant'],
-                                 underline=int(fnt['underline']),
-                                 overstrike=int(fnt['overstrike']))
+                                 slant=fnt['slant'])
 
             self.text_area.config(font=self.fnt)
 
@@ -555,6 +551,7 @@ class FindWindow(FindReplaceWindow):
 
 def open_file():
     global FILE
+    line = ''
 
     FILE = askopenfilename(defaultextension='.txt',
                            initialdir='.',
@@ -567,8 +564,9 @@ def open_file():
         f = open(FILE, 'r')
         notepad.clear_text()
         lines = f.read()
-        notepad.write_text(lines)
         f.close()
+        notepad.write_text(lines)
+        line = lines[:4]
         notepad.set_title(os.path.basename(FILE))
         log.info(str(FILE) + " opened")
 
@@ -576,9 +574,6 @@ def open_file():
         log.error('TypeError', FILE)
     except FileNotFoundError:
         log.error('FileNotFoundError', FILE)
-
-    line = lines[:4]
-    print(line)
 
     if line.upper() == '.LOG':
         log.info(FILE + ' is a log, appending time stamp.')
@@ -635,8 +630,6 @@ def search_with_bing(string):
 def show_about():
     messagebox.showinfo('Notepad', 'Microsoft Windows\n(c) 1983 Microsoft Corporation')
 
-
-# Run main application
 
 # global vars
 FILE = ''  # path to current file
