@@ -1,5 +1,6 @@
 import logging as log
 import os
+import hashlib
 import webbrowser
 from datetime import datetime
 from tkinter import Frame, Text, LabelFrame, Scrollbar, Menu, Button, Checkbutton, Radiobutton, Label, Entry, font, \
@@ -34,6 +35,8 @@ class Interface(Frame):
         self.__bind_shortcuts()
         self.toggle_word_wrap()
         self.context_menu = Menu(self.master, tearoff=0)
+
+        self.last_hash = get_signature(self.text_area.get(1.0, END))
 
     def __init_main_window(self):
         self.text_area = Text(self.master, undo=True)
@@ -206,6 +209,11 @@ class Interface(Frame):
         self.text_area.bind_class(self.text_area, '<Button-3>', self.show_context_menu)
 
     def quit_application(self):
+        if notepad.has_changed():
+            save_box = messagebox.askquestion('Confirm save', 'Do you want to save before closing this file?',
+                                              icon='warning')
+            if save_box == 'yes':
+                save_file()
         self.master.destroy()
         exit()
 
@@ -221,7 +229,7 @@ class Interface(Frame):
         try:
             self.context_menu.destroy()
         except AttributeError:
-            log.warning('error occurred while trying to exit context menu, probably not instanciated')
+            log.warning('error occurred while trying to exit context menu, probably not instansiated')
 
     def update_status_bar(self, obj):
         row, col = self.text_area.index(obj).split('.')
@@ -314,6 +322,14 @@ class Interface(Frame):
             self.text_area.focus()
         else:
             log.warning(search_string + 'string not found')
+
+    def has_changed(self):
+        if get_signature(self.text_area.get(1.0, END)) == self.last_hash:
+            log.info('file has changed')
+            return False
+        else:
+            log.info('file has not changed')
+            return True
 
 
 def get_index(index):
@@ -553,6 +569,12 @@ def open_file():
     global FILE
     line = ''
 
+    if notepad.has_changed():
+        save_box = messagebox.askquestion('Confirm save', 'Do you want to save before closing this file?',
+                                          icon='warning')
+        if save_box == 'yes':
+            save_file()
+
     FILE = askopenfilename(defaultextension='.txt',
                            initialdir='.',
                            filetypes=[('All Files', '*.*'),
@@ -582,6 +604,12 @@ def open_file():
 
 def new_file():
     global FILE
+    if notepad.has_changed():
+        save_box = messagebox.askquestion('Confirm save', 'Do you want to save before closing this file?',
+                                          icon='warning')
+        if save_box == 'yes':
+            save_file()
+
     notepad.set_title('Untitled')
     FILE = ''
     notepad.clear_text()
@@ -629,6 +657,12 @@ def search_with_bing(string):
 
 def show_about():
     messagebox.showinfo('Notepad', 'Microsoft Windows\n(c) 1983 Microsoft Corporation')
+
+
+def get_signature(contents):
+    m = hashlib.md5()
+    m.update(contents.encode('utf-8'))
+    return m.hexdigest()
 
 
 # global vars
